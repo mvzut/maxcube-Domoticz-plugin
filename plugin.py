@@ -14,9 +14,9 @@
             <li>Valve position of radiator valves is reflected in percentage sensors</li>
             <li>Status of door and window contacts is reflected in contact sensors</li>
         </ul>
-        <h3>Not working yet</h3>
+        <h3>Not working (yet)</h3>
         <ul style="list-style-type:square">
-            <li>Adding devices (this has to be done using the eQ-3 MAX! software)</li>
+            <li>Adding new devices to the Cube (this has to be done using the eQ-3 MAX! software)</li>
             <li>Auto/Manual/Holiday modes. In principle you don't need them anymore, since you can program your own timers and scripts for thermostats</li>
         </ul>
         <h3>Configuration</h3>
