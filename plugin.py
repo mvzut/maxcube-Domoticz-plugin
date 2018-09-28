@@ -97,7 +97,7 @@ class BasePlugin:
             deviceFound = False
             for Device in Devices:
                 if Devices[Device].DeviceID == EQ3device.rf_address: deviceFound = True
-            if (deviceFound == False):
+            if not deviceFound:
                 Domoticz.Log("Adding device(s) for " + EQ3device.name + " Type: " + type + " ID: " + EQ3device.rf_address)
                 if cube.is_thermostat(EQ3device):
                     # Create percentage device
@@ -192,29 +192,9 @@ def onStart():
     global _plugin
     _plugin.onStart()
 
-def onStop():
-    global _plugin
-    _plugin.onStop()
-
-def onConnect(Connection, Status, Description):
-    global _plugin
-    _plugin.onConnect(Connection, Status, Description)
-
-def onMessage(Connection, Data):
-    global _plugin
-    _plugin.onMessage(Connection, Data)
-
 def onCommand(Unit, Command, Level, Hue):
     global _plugin
     _plugin.onCommand(Unit, Command, Level, Hue)
-
-def onNotification(Name, Subject, Text, Status, Priority, Sound, ImageFile):
-    global _plugin
-    _plugin.onNotification(Name, Subject, Text, Status, Priority, Sound, ImageFile)
-
-def onDisconnect(Connection):
-    global _plugin
-    _plugin.onDisconnect(Connection)
 
 def onHeartbeat():
     global _plugin
