@@ -14,9 +14,9 @@
             <li>Valve position of radiator valves is reflected in percentage sensors</li>
             <li>Status of door and window contacts is reflected in contact sensors</li>
         </ul>
-        <h3>Not working (yet)</h3>
+        <h3>Not working yet</h3>
         <ul style="list-style-type:square">
-            <li>Adding new devices to the Cube (this has to be done using the eQ-3 MAX! software)</li>
+            <li>Adding devices (this has to be done using the eQ-3 MAX! software)</li>
             <li>Auto/Manual/Holiday modes. In principle you don't need them anymore, since you can program your own timers and scripts for thermostats</li>
         </ul>
         <h3>Configuration</h3>
@@ -84,7 +84,9 @@ class BasePlugin:
             Domoticz.Heartbeat(target)
         
     def onStart(self):
-        if Parameters["Mode5"]=="True": Domoticz.Debugging(2)
+        if Parameters["Mode5"]=="True": 
+            Domoticz.Debugging(2)
+            DumpConfigToLog()
         self.setpollinterval(int(Parameters["Mode2"]))
 
         # Read Cube for intialization of devices
@@ -125,13 +127,13 @@ class BasePlugin:
 
 
     def onStop(self):
-        Domoticz.Log("onStop called")
+        Domoticz.Debug("onStop called")
 
     def onConnect(self, Connection, Status, Description):
-        Domoticz.Log("onConnect called")
+        Domoticz.Debug("onConnect called")
 
     def onMessage(self, Connection, Data):
-        Domoticz.Log("onMessage called")
+        Domoticz.Debug("onMessage called")
 
     def onCommand(self, Unit, Command, Level, Hue):
         if Devices[Unit].Type == 242:
@@ -143,10 +145,10 @@ class BasePlugin:
                     Devices[Unit].Update(0,str(Level))
 
     def onNotification(self, Name, Subject, Text, Status, Priority, Sound, ImageFile):
-        Domoticz.Log("Notification: " + Name + "," + Subject + "," + Text + "," + Status + "," + str(Priority) + "," + Sound + "," + ImageFile)
+        Domoticz.Debug("Notification: " + Name + "," + Subject + "," + Text + "," + Status + "," + str(Priority) + "," + Sound + "," + ImageFile)
 
     def onDisconnect(self, Connection):
-        Domoticz.Log("onDisconnect called")
+        Domoticz.Debug("onDisconnect called")
 
     def onHeartbeat(self):
         #Cancel the rest of this function if this heartbeat needs to be skipped
@@ -165,30 +167,36 @@ class BasePlugin:
                 # Look up & update corresponding Domoticz percentage device
                 for DomDevice in Devices:
                     if Devices[DomDevice].Type == 243 and Devices[DomDevice].DeviceID == EQ3device.rf_address:
-                        Domoticz.Debug("Updating value for " + Devices[DomDevice].Name + ": " + str(EQ3device.valve_position) + "%")
-                        if Devices[DomDevice].sValue != str(EQ3device.valve_position): Devices[DomDevice].Update(0,str(EQ3device.valve_position))
+                        if Devices[DomDevice].sValue != str(EQ3device.valve_position):
+                            Domoticz.Log("Updating value for " + Devices[DomDevice].Name + ": " + str(EQ3device.valve_position) + "%")
+                            Devices[DomDevice].Update(0,str(EQ3device.valve_position))
                 if Parameters["Mode1"] == "RV":
                     # Look up & update corresponding Domoticz thermostat device
                     for DomDevice in Devices:
                        if Devices[DomDevice].Type == 242 and Devices[DomDevice].DeviceID == EQ3device.rf_address:
                         Domoticz.Debug("Updating value for " + Devices[DomDevice].Name + ": " + str(EQ3device.target_temperature) + "\u00b0C")
-                        if Devices[DomDevice].sValue != str(EQ3device.target_temperature): Devices[DomDevice].Update(0,str(EQ3device.target_temperature))
+                        if Devices[DomDevice].sValue != str(EQ3device.target_temperature):
+                            Domoticz.Log("Updating value for " + Devices[DomDevice].Name + ": " + str(EQ3device.target_temperature) + "\u00b0C")
+                            Devices[DomDevice].Update(0,str(EQ3device.target_temperature))
                     # Look up & update corresponding Domoticz temperature device
                     for DomDevice in Devices:
                        if Devices[DomDevice].Type == 80 and Devices[DomDevice].DeviceID == EQ3device.rf_address:
-                        Domoticz.Debug("Updating value for " + Devices[DomDevice].Name + ": " + str(EQ3device.actual_temperature) + "\u00b0C")
-                        if Devices[DomDevice].sValue != str(EQ3device.actual_temperature): Devices[DomDevice].Update(0,str(EQ3device.actual_temperature))
+                        if Devices[DomDevice].sValue != str(EQ3device.actual_temperature):
+                            Domoticz.Log("Updating value for " + Devices[DomDevice].Name + ": " + str(EQ3device.actual_temperature) + "\u00b0C")
+                            Devices[DomDevice].Update(0,str(EQ3device.actual_temperature))
             elif EQ3device.type == MAX_WALL_THERMOSTAT:
                 # Look up & update corresponding Domoticz thermostat device
                 for DomDevice in Devices:
                     if Devices[DomDevice].Type == 242 and Devices[DomDevice].DeviceID == EQ3device.rf_address:
-                        Domoticz.Debug("Updating value for " + Devices[DomDevice].Name + ": " + str(EQ3device.target_temperature) + "\u00b0C")
-                        if Devices[DomDevice].sValue != str(EQ3device.target_temperature): Devices[DomDevice].Update(0,str(EQ3device.target_temperature))           
+                        if Devices[DomDevice].sValue != str(EQ3device.target_temperature):
+                            Domoticz.Log("Updating value for " + Devices[DomDevice].Name + ": " + str(EQ3device.target_temperature) + "\u00b0C")
+                            Devices[DomDevice].Update(0,str(EQ3device.target_temperature))           
                 # Look up & update corresponding Domoticz temperature device
                 for DomDevice in Devices:
                     if Devices[DomDevice].Type == 80 and Devices[DomDevice].DeviceID == EQ3device.rf_address:
-                        Domoticz.Debug("Updating value for " + Devices[DomDevice].Name + ": " + str(EQ3device.actual_temperature) + "\u00b0C")
-                        if Devices[DomDevice].sValue != str(EQ3device.actual_temperature): Devices[DomDevice].Update(0,str(EQ3device.actual_temperature))
+                        if Devices[DomDevice].sValue != str(EQ3device.actual_temperature):
+                            Domoticz.Log("Updating value for " + Devices[DomDevice].Name + ": " + str(EQ3device.actual_temperature) + "\u00b0C")
+                            Devices[DomDevice].Update(0,str(EQ3device.actual_temperature))
             elif EQ3device.type == MAX_WINDOW_SHUTTER:
                 # Look up & update corresponding Domoticz contact device
                 for DomDevice in Devices:
@@ -199,9 +207,9 @@ class BasePlugin:
                         elif EQ3device.is_open == False:
                             nvalue = 0
                             svalue = "Off"
-                        Domoticz.Debug("Updating value for " + Devices[DomDevice].Name + ": " + svalue)
-                        if Devices[DomDevice].sValue != svalue: Devices[DomDevice].Update(nvalue,svalue)
- 
+                        if Devices[DomDevice].sValue != svalue: 
+                            Domoticz.Log("Updating value for " + Devices[DomDevice].Name + ": " + svalue)
+                            Devices[DomDevice].Update(nvalue,svalue)
 
 global _plugin
 _plugin = BasePlugin()
