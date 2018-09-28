@@ -142,7 +142,7 @@ class BasePlugin:
                     # Look up & update corresponding Domoticz temperature device
                     for DomDevice in Devices:
                         if Devices[DomDevice].Type == 80 and Devices[DomDevice].DeviceID == EQ3device.rf_address:
-                            if Devices[DomDevice].sValue != str(EQ3device.actual_temperature):
+                            if EQ3device.actual_temperature != 0 and Devices[DomDevice].sValue != str(EQ3device.actual_temperature):
                                 Domoticz.Log("Updating value for " + Devices[DomDevice].Name + ": " + str(EQ3device.actual_temperature) + " \u00b0C")
                                 Devices[DomDevice].Update(nValue=0, sValue=str(EQ3device.actual_temperature), BatteryLevel=(255-EQ3device.battery*255))
             elif cube.is_wallthermostat(EQ3device):
