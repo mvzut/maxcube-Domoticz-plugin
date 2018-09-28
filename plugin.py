@@ -98,7 +98,7 @@ class BasePlugin:
             for Device in Devices:
                 if Devices[Device].DeviceID == EQ3device.rf_address: deviceFound = True
             if not deviceFound:
-                Domoticz.Log("Adding device(s) for " + EQ3device.name + " Type: " + type + " ID: " + EQ3device.rf_address)
+                Domoticz.Log("Adding device(s) for " + EQ3device.name)
                 if cube.is_thermostat(EQ3device):
                     # Create percentage device
                     Domoticz.Device(Name=EQ3device.name + " - Percentage" , Unit=len(Devices)+1, DeviceID=EQ3device.rf_address, Type=243, Subtype=6, Used=1).Create()
@@ -123,7 +123,8 @@ class BasePlugin:
             for EQ3device in cube.devices:
                 if Devices[Unit].DeviceID == EQ3device.rf_address:
                     cube.set_target_temperature(EQ3device, Level)
-                    Devices[Unit].Update(0,str(Level))
+                    #Devices[Unit].Update(nValue=0, sValue=str(Level))
+                    Devices[Unit].Refresh
 
     def onHeartbeat(self):
         #Cancel the rest of this function if this heartbeat needs to be skipped
@@ -144,33 +145,33 @@ class BasePlugin:
                     if Devices[DomDevice].Type == 243 and Devices[DomDevice].DeviceID == EQ3device.rf_address:
                         if Devices[DomDevice].sValue != str(EQ3device.valve_position):
                             Domoticz.Log("Updating value for " + Devices[DomDevice].Name + ": " + str(EQ3device.valve_position) + "%")
-                            Devices[DomDevice].Update(0,str(EQ3device.valve_position))
+                            Devices[DomDevice].Update(nValue=0, sValue=str(EQ3device.valve_position), BatteryLevel=(255-EQ3device.battery*255))
                 if Parameters["Mode1"] == "RV":
                     # Look up & update corresponding Domoticz thermostat device
                     for DomDevice in Devices:
                         if Devices[DomDevice].Type == 242 and Devices[DomDevice].DeviceID == EQ3device.rf_address:
                             if Devices[DomDevice].sValue != str(EQ3device.target_temperature):
                                 Domoticz.Log("Updating value for " + Devices[DomDevice].Name + ": " + str(EQ3device.target_temperature) + " \u00b0C")
-                                Devices[DomDevice].Update(0,str(EQ3device.target_temperature))
+                                Devices[DomDevice].Update(nValue=0, sValue=str(EQ3device.target_temperature), BatteryLevel=(255-EQ3device.battery*255))
                     # Look up & update corresponding Domoticz temperature device
                     for DomDevice in Devices:
                         if Devices[DomDevice].Type == 80 and Devices[DomDevice].DeviceID == EQ3device.rf_address:
                             if Devices[DomDevice].sValue != str(EQ3device.actual_temperature):
                                 Domoticz.Log("Updating value for " + Devices[DomDevice].Name + ": " + str(EQ3device.actual_temperature) + " \u00b0C")
-                                Devices[DomDevice].Update(0,str(EQ3device.actual_temperature))
+                                Devices[DomDevice].Update(nValue=0, sValue=str(EQ3device.actual_temperature), BatteryLevel=(255-EQ3device.battery*255))
             elif cube.is_wallthermostat(EQ3device):
                 # Look up & update corresponding Domoticz thermostat device
                 for DomDevice in Devices:
                     if Devices[DomDevice].Type == 242 and Devices[DomDevice].DeviceID == EQ3device.rf_address:
                         if Devices[DomDevice].sValue != str(EQ3device.target_temperature):
                             Domoticz.Log("Updating value for " + Devices[DomDevice].Name + ": " + str(EQ3device.target_temperature) + " \u00b0C")
-                            Devices[DomDevice].Update(0,str(EQ3device.target_temperature))           
+                            Devices[DomDevice].Update(nValue=0, sValue=str(EQ3device.target_temperature), BatteryLevel=(255-EQ3device.battery*255))
                 # Look up & update corresponding Domoticz temperature device
                 for DomDevice in Devices:
                     if Devices[DomDevice].Type == 80 and Devices[DomDevice].DeviceID == EQ3device.rf_address:
                         if Devices[DomDevice].sValue != str(EQ3device.actual_temperature):
                             Domoticz.Log("Updating value for " + Devices[DomDevice].Name + ": " + str(EQ3device.actual_temperature) + " \u00b0C")
-                            Devices[DomDevice].Update(0,str(EQ3device.actual_temperature))
+                            Devices[DomDevice].Update(nValue=0, sValue=str(EQ3device.actual_temperature), BatteryLevel=(255-EQ3device.battery*255))
             elif cube.is_windowshutter(EQ3device):
                 # Look up & update corresponding Domoticz contact device
                 for DomDevice in Devices:
@@ -183,7 +184,7 @@ class BasePlugin:
                             svalue = "Off"
                         if Devices[DomDevice].sValue != svalue: 
                             Domoticz.Log("Updating value for " + Devices[DomDevice].Name + ": " + svalue)
-                            Devices[DomDevice].Update(nvalue,svalue)
+                            Devices[DomDevice].Update(nValue=nvalue, sValue=svalue, BatteryLevel=(255-EQ3device.battery*255))
 
 global _plugin
 _plugin = BasePlugin()
