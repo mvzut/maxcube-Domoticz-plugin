@@ -92,23 +92,14 @@ class BasePlugin:
         # Read Cube for intialization of devices
         Domoticz.Log("Reading e-Q3 MAX! devices from Cube...")
         cube = MaxCube(MaxCubeConnection(Parameters["Address"], int(Parameters["Port"])))
-        for device in cube.devices:
-            if device.type == MAX_THERMOSTAT:
-                type = "MAX_THERMOSTAT"
-            elif device.type == MAX_THERMOSTAT_PLUS:
-                type = "MAX_THERMOSTAT_PLUS"
-            elif device.type == MAX_WINDOW_SHUTTER:
-                type = "MAX_WINDOW_SHUTTER"
-            elif device.type == MAX_WALL_THERMOSTAT:
-                type = "MAX_WALL_THERMOSTAT"
-           
+        for EQ3device in cube.devices:
            # Add devices if required
             deviceFound = False
             for Device in Devices:
                 if Devices[Device].DeviceID == device.rf_address: deviceFound = True
             if (deviceFound == False):
                 Domoticz.Log("Adding device(s) for " + device.name + " Type: " + type + " ID: " + device.rf_address)
-                if type == "MAX_THERMOSTAT" or type == "MAX_THERMOSTAT_PLUS":
+                if cube.is_thermostat(EQ3device):
                     # Create percentage device
                     Domoticz.Device(Name=device.name + " - Percentage" , Unit=len(Devices)+1, DeviceID=device.rf_address, Type=243, Subtype=6, Used=1).Create()
                     if Parameters["Mode1"] == "RV":
@@ -116,12 +107,12 @@ class BasePlugin:
                         Domoticz.Device(Name=device.name, Unit=len(Devices)+1, DeviceID=device.rf_address, Type=242, Subtype=1, Used=1).Create()
                         # Create temperature device
                         Domoticz.Device(Name=device.name + " - Temperature", Unit=len(Devices)+1, DeviceID=device.rf_address, Type=80, Subtype=5, Used=1).Create()
-                if type == "MAX_WALL_THERMOSTAT":
+                if cube.is_wallthermostat(EQ3device):
                     # Create thermostat device
                     Domoticz.Device(Name=device.name, Unit=len(Devices)+1, DeviceID=device.rf_address, Type=242, Subtype=1, Used=1).Create()
                     # Create temperature device
                     Domoticz.Device(Name=device.name + " - Temperature", Unit=len(Devices)+1, DeviceID=device.rf_address, Type=80, Subtype=5, Used=1).Create()
-                if type == "MAX_WINDOW_SHUTTER":
+                if cube.is_windowshutter(EQ3device):
                     # Create contact device
                     Domoticz.Device(Name=device.name, Unit=len(Devices)+1, DeviceID=device.rf_address, Type=244, Subtype=73, Switchtype=2, Used=1).Create()
 
@@ -163,7 +154,7 @@ class BasePlugin:
 
         # Update devices in Domoticz
         for EQ3device in cube.devices:
-            if EQ3device.type == MAX_THERMOSTAT or EQ3device.type == MAX_THERMOSTAT_PLUS:
+            if cube.is_thermostat(EQ3device):
                 # Look up & update corresponding Domoticz percentage device
                 for DomDevice in Devices:
                     if Devices[DomDevice].Type == 243 and Devices[DomDevice].DeviceID == EQ3device.rf_address:
@@ -184,7 +175,7 @@ class BasePlugin:
                         if Devices[DomDevice].sValue != str(EQ3device.actual_temperature):
                             Domoticz.Log("Updating value for " + Devices[DomDevice].Name + ": " + str(EQ3device.actual_temperature) + "\u00b0C")
                             Devices[DomDevice].Update(0,str(EQ3device.actual_temperature))
-            elif EQ3device.type == MAX_WALL_THERMOSTAT:
+            elif cube.is_wallthermostat(EQ3device):
                 # Look up & update corresponding Domoticz thermostat device
                 for DomDevice in Devices:
                     if Devices[DomDevice].Type == 242 and Devices[DomDevice].DeviceID == EQ3device.rf_address:
@@ -197,7 +188,7 @@ class BasePlugin:
                         if Devices[DomDevice].sValue != str(EQ3device.actual_temperature):
                             Domoticz.Log("Updating value for " + Devices[DomDevice].Name + ": " + str(EQ3device.actual_temperature) + "\u00b0C")
                             Devices[DomDevice].Update(0,str(EQ3device.actual_temperature))
-            elif EQ3device.type == MAX_WINDOW_SHUTTER:
+            elif cube.is_windowshutter(EQ3device):
                 # Look up & update corresponding Domoticz contact device
                 for DomDevice in Devices:
                     if Devices[DomDevice].Type == 244 and Devices[DomDevice].DeviceID == EQ3device.rf_address:
