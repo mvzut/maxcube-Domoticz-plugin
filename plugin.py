@@ -1,9 +1,9 @@
-# First attempt to create e-Q3 MAX! plugin
+# First attempt to create eQ-33 MAX! plugin
 #
 # Author: mvzut
 #
 """
-<plugin key="eq3max" name="eQ-3 MAX!" author="mvzut" version="0.0.2">
+<plugin key="eq3max" name="eQ-3 MAX!" author="mvzut" version="0.1.0">
     <description>
         <h2>eQ-3 MAX! Cube plugin</h2><br/>
         <h3>Features</h3>
@@ -116,16 +116,6 @@ class BasePlugin:
                     # Create contact device
                     Domoticz.Device(Name=EQ3device.name, Unit=len(Devices)+1, DeviceID=EQ3device.rf_address, Type=244, Subtype=73, Switchtype=2, Used=1).Create()
 
-
-    def onStop(self):
-        Domoticz.Debug("onStop called")
-
-    def onConnect(self, Connection, Status, Description):
-        Domoticz.Debug("onConnect called")
-
-    def onMessage(self, Connection, Data):
-        Domoticz.Debug("onMessage called")
-
     def onCommand(self, Unit, Command, Level, Hue):
         if Devices[Unit].Type == 242:
             Domoticz.Debug("Setpoint changed for " + Devices[Unit].Name + ". New setpoint: " + str(Level))
@@ -134,12 +124,6 @@ class BasePlugin:
                 if Devices[Unit].DeviceID == EQ3device.rf_address:
                     cube.set_target_temperature(EQ3device, Level)
                     Devices[Unit].Update(0,str(Level))
-
-    def onNotification(self, Name, Subject, Text, Status, Priority, Sound, ImageFile):
-        Domoticz.Debug("Notification: " + Name + "," + Subject + "," + Text + "," + Status + "," + str(Priority) + "," + Sound + "," + ImageFile)
-
-    def onDisconnect(self, Connection):
-        Domoticz.Debug("onDisconnect called")
 
     def onHeartbeat(self):
         #Cancel the rest of this function if this heartbeat needs to be skipped
