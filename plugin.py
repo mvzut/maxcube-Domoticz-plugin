@@ -96,25 +96,25 @@ class BasePlugin:
            # Add devices if required
             deviceFound = False
             for Device in Devices:
-                if Devices[Device].DeviceID == device.rf_address: deviceFound = True
+                if Devices[Device].DeviceID == EQ3device.rf_address: deviceFound = True
             if (deviceFound == False):
-                Domoticz.Log("Adding device(s) for " + device.name + " Type: " + type + " ID: " + device.rf_address)
+                Domoticz.Log("Adding device(s) for " + EQ3device.name + " Type: " + type + " ID: " + EQ3device.rf_address)
                 if cube.is_thermostat(EQ3device):
                     # Create percentage device
-                    Domoticz.Device(Name=device.name + " - Percentage" , Unit=len(Devices)+1, DeviceID=device.rf_address, Type=243, Subtype=6, Used=1).Create()
+                    Domoticz.Device(Name=EQ3device.name + " - Percentage" , Unit=len(Devices)+1, DeviceID=EQ3device.rf_address, Type=243, Subtype=6, Used=1).Create()
                     if Parameters["Mode1"] == "RV":
                         # Create thermostat device
-                        Domoticz.Device(Name=device.name, Unit=len(Devices)+1, DeviceID=device.rf_address, Type=242, Subtype=1, Used=1).Create()
+                        Domoticz.Device(Name=EQ3device.name, Unit=len(Devices)+1, DeviceID=EQ3device.rf_address, Type=242, Subtype=1, Used=1).Create()
                         # Create temperature device
-                        Domoticz.Device(Name=device.name + " - Temperature", Unit=len(Devices)+1, DeviceID=device.rf_address, Type=80, Subtype=5, Used=1).Create()
+                        Domoticz.Device(Name=EQ3device.name + " - Temperature", Unit=len(Devices)+1, DeviceID=EQ3device.rf_address, Type=80, Subtype=5, Used=1).Create()
                 if cube.is_wallthermostat(EQ3device):
                     # Create thermostat device
-                    Domoticz.Device(Name=device.name, Unit=len(Devices)+1, DeviceID=device.rf_address, Type=242, Subtype=1, Used=1).Create()
+                    Domoticz.Device(Name=EQ3device.name, Unit=len(Devices)+1, DeviceID=EQ3device.rf_address, Type=242, Subtype=1, Used=1).Create()
                     # Create temperature device
-                    Domoticz.Device(Name=device.name + " - Temperature", Unit=len(Devices)+1, DeviceID=device.rf_address, Type=80, Subtype=5, Used=1).Create()
+                    Domoticz.Device(Name=EQ3device.name + " - Temperature", Unit=len(Devices)+1, DeviceID=EQ3device.rf_address, Type=80, Subtype=5, Used=1).Create()
                 if cube.is_windowshutter(EQ3device):
                     # Create contact device
-                    Domoticz.Device(Name=device.name, Unit=len(Devices)+1, DeviceID=device.rf_address, Type=244, Subtype=73, Switchtype=2, Used=1).Create()
+                    Domoticz.Device(Name=EQ3device.name, Unit=len(Devices)+1, DeviceID=EQ3device.rf_address, Type=244, Subtype=73, Switchtype=2, Used=1).Create()
 
 
     def onStop(self):
