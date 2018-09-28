@@ -51,39 +51,25 @@
 import Domoticz
 from maxcube.cube import MaxCube
 from maxcube.connection import MaxCubeConnection
-from maxcube.device import \
-    MAX_THERMOSTAT, \
-    MAX_THERMOSTAT_PLUS, \
-    MAX_WINDOW_SHUTTER, \
-    MAX_WALL_THERMOSTAT, \
-    MAX_DEVICE_MODE_AUTOMATIC, \
-    MAX_DEVICE_MODE_MANUAL, \
-    MAX_DEVICE_MODE_VACATION, \
-    MAX_DEVICE_MODE_BOOST
 
 class BasePlugin:
     enabled = False
     def __init__(self):
         return
-
-    def setpollinterval(self, target):
-        if target > 30:
-            self.skipbeats=target/30
-            self.beats=self.skipbeats
-            Domoticz.Heartbeat(30)
-        else:
-            self.skipbeats=0
-            self.beats=1
-            Domoticz.Heartbeat(target)
         
     def onStart(self):
+        # Set debugging
         if Parameters["Mode5"]=="True": 
             Domoticz.Debugging(2)
-            DumpConfigToLog()
-        self.setpollinterval(int(Parameters["Mode2"]))
+            Domoticz.Debug("Debugging mode activated")
+
+        # Set heartbeat
+        self.skipbeats=int(Parameters["Mode2"])/30
+        self.beats=self.skipbeats
+        Domoticz.Heartbeat(30)
 
         # Read Cube for intialization of devices
-        Domoticz.Log("Reading e-Q3 MAX! devices from Cube...")
+        Domoticz.Debug("Reading e-Q3 MAX! devices from Cube...")
         cube = MaxCube(MaxCubeConnection(Parameters["Address"], int(Parameters["Port"])))
 
         # Check which rooms have a wall mounterd thermostat
@@ -134,6 +120,7 @@ class BasePlugin:
         self.beats=1
 
         # Read data from Cube
+        Domoticz.Debug("Reading e-Q3 MAX! devices from Cube...")
         cube = MaxCube(MaxCubeConnection(Parameters["Address"], int(Parameters["Port"])))
 
         # Update devices in Domoticz
@@ -155,7 +142,7 @@ class BasePlugin:
                     # Look up & update corresponding Domoticz temperature device
                     for DomDevice in Devices:
                         if Devices[DomDevice].Type == 80 and Devices[DomDevice].DeviceID == EQ3device.rf_address:
-                            if EQ3device.actual_temperature != 0 and Devices[DomDevice].sValue != str(EQ3device.actual_temperature):
+                            if Devices[DomDevice].sValue != str(EQ3device.actual_temperature):
                                 Domoticz.Log("Updating value for " + Devices[DomDevice].Name + ": " + str(EQ3device.actual_temperature) + " \u00b0C")
                                 Devices[DomDevice].Update(nValue=0, sValue=str(EQ3device.actual_temperature), BatteryLevel=(255-EQ3device.battery*255))
             elif cube.is_wallthermostat(EQ3device):
@@ -200,17 +187,3 @@ def onHeartbeat():
     global _plugin
     _plugin.onHeartbeat()
 
-    # Generic helper functions
-def DumpConfigToLog():
-    for x in Parameters:
-        if Parameters[x] != "":
-            Domoticz.Debug( "'" + x + "':'" + str(Parameters[x]) + "'")
-    Domoticz.Debug("Device count: " + str(len(Devices)))
-    for x in Devices:
-        Domoticz.Debug("Device:           " + str(x) + " - " + str(Devices[x]))
-        Domoticz.Debug("Device ID:       '" + str(Devices[x].ID) + "'")
-        Domoticz.Debug("Device Name:     '" + Devices[x].Name + "'")
-        Domoticz.Debug("Device nValue:    " + str(Devices[x].nValue))
-        Domoticz.Debug("Device sValue:   '" + Devices[x].sValue + "'")
-        Domoticz.Debug("Device LastLevel: " + str(Devices[x].LastLevel))
-    return
