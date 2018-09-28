@@ -3,18 +3,18 @@
 # Author: mvzut
 #
 """
-<plugin key="eq3max" name="eQ-3 MAX!" author="mvzut" version="0.1.0">
+<plugin key="eq3max" name="eQ-3 MAX!" author="mvzut" version="0.2.0">
     <description>
         <h2>eQ-3 MAX! Cube plugin</h2><br/>
         <h3>Features</h3>
         <ul style="list-style-type:square">
             <li>Thermostats and radiator valves are represented as Domoticz thermostat devices, which can be controlled (also by scripts), programmed, etc.</li>
-            <li>Temperature sensors reflect the actual temperature retrieved from wall mounted thermostats or (when 'Use radiator valves' is selected as thermostat mode) from radiator valves.
+            <li>Temperature sensors reflect the actual temperature retrieved from wall mounted thermostats or radiator valves.
             Note that radiator valves only report temperature when they are moving!</li>
             <li>Valve position of radiator valves is reflected in percentage sensors</li>
             <li>Status of door and window contacts is reflected in contact sensors</li>
         </ul>
-        <h3>Not working yet</h3>
+        <h3>Not working (yet)</h3>
         <ul style="list-style-type:square">
             <li>Adding devices (this has to be done using the eQ-3 MAX! software)</li>
             <li>Auto/Manual/Holiday modes. In principle you don't need them anymore, since you can program your own timers and scripts for thermostats</li>
@@ -23,20 +23,13 @@
         <ul style="list-style-type:square">
             <li>Fill in the IP address of your eQ-3 MAX! Cube</li>
             <li>Fill in the port number of your Cube. The default is 62910, no need to change this in most cases.</li>
-            <li>Select if you want Domoticz thermostats to be created based on your radiator valves or your wall mounted thermostats (if you have those).</li>
             <li>Choose a polling time. The default is 5 minutes, shorter periods can sometimes cause problems, the eQ-3 MAX! system doesn't seem to like too much traffic per hour.</li>
         </ul>
     </description>
     <params>
         <param field="Address" label="Cube address" width="150px" required="true" default="192.168.0.1"/>
         <param field="Port" label="Cube port" width="75px" required="true" default="62910"/>
-        <param field="Mode1" label="Thermostat mode" width="300px" required="true">
-            <options>
-                <option label="Use radiator valves" value="RV" default="true"/>
-                <option label="Use wall mounted thermostats if available" value="WMT"/>
-            </options>
-        </param>
-        <param field="Mode2" label="Poll every" width="200px" required="true">
+        <param field="Mode2" label="Poll every" width="150px" required="true">
             <options>
                 <option label="1 minute" value=60/>
                 <option label="2 minutes" value=120/>
@@ -92,6 +85,12 @@ class BasePlugin:
         # Read Cube for intialization of devices
         Domoticz.Log("Reading e-Q3 MAX! devices from Cube...")
         cube = MaxCube(MaxCubeConnection(Parameters["Address"], int(Parameters["Port"])))
+
+        # Check which rooms have a wall mounterd thermostat
+        self.RoomHasThermostat=[False] * (len(cube.rooms)+1)
+        for EQ3device in cube.devices:
+            if cube.is_wallthermostat(EQ3device): self.RoomHasThermostat[EQ3device.room_id] = True
+
         for EQ3device in cube.devices:
            # Add devices if required
             deviceFound = False
@@ -102,7 +101,7 @@ class BasePlugin:
                 if cube.is_thermostat(EQ3device):
                     # Create percentage device
                     Domoticz.Device(Name=EQ3device.name + " - Percentage" , Unit=len(Devices)+1, DeviceID=EQ3device.rf_address, Type=243, Subtype=6, Used=1).Create()
-                    if Parameters["Mode1"] == "RV":
+                    if not self.RoomHasThermostat[EQ3device.room_id]:
                         # Create thermostat device
                         Domoticz.Device(Name=EQ3device.name, Unit=len(Devices)+1, DeviceID=EQ3device.rf_address, Type=242, Subtype=1, Used=1).Create()
                         # Create temperature device
@@ -146,7 +145,7 @@ class BasePlugin:
                         if Devices[DomDevice].sValue != str(EQ3device.valve_position):
                             Domoticz.Log("Updating value for " + Devices[DomDevice].Name + ": " + str(EQ3device.valve_position) + "%")
                             Devices[DomDevice].Update(nValue=0, sValue=str(EQ3device.valve_position), BatteryLevel=(255-EQ3device.battery*255))
-                if Parameters["Mode1"] == "RV":
+                if not self.RoomHasThermostat[EQ3device.room_id]:
                     # Look up & update corresponding Domoticz thermostat device
                     for DomDevice in Devices:
                         if Devices[DomDevice].Type == 242 and Devices[DomDevice].DeviceID == EQ3device.rf_address:
