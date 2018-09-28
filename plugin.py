@@ -150,26 +150,26 @@ class BasePlugin:
                     for DomDevice in Devices:
                         if Devices[DomDevice].Type == 242 and Devices[DomDevice].DeviceID == EQ3device.rf_address:
                             if Devices[DomDevice].sValue != str(EQ3device.target_temperature):
-                                Domoticz.Log("Updating value for " + Devices[DomDevice].Name + ": " + str(EQ3device.target_temperature) + "\u00b0C")
+                                Domoticz.Log("Updating value for " + Devices[DomDevice].Name + ": " + str(EQ3device.target_temperature) + " \u00b0C")
                                 Devices[DomDevice].Update(0,str(EQ3device.target_temperature))
                     # Look up & update corresponding Domoticz temperature device
                     for DomDevice in Devices:
                         if Devices[DomDevice].Type == 80 and Devices[DomDevice].DeviceID == EQ3device.rf_address:
                             if Devices[DomDevice].sValue != str(EQ3device.actual_temperature):
-                                Domoticz.Log("Updating value for " + Devices[DomDevice].Name + ": " + str(EQ3device.actual_temperature) + "\u00b0C")
+                                Domoticz.Log("Updating value for " + Devices[DomDevice].Name + ": " + str(EQ3device.actual_temperature) + " \u00b0C")
                                 Devices[DomDevice].Update(0,str(EQ3device.actual_temperature))
             elif cube.is_wallthermostat(EQ3device):
                 # Look up & update corresponding Domoticz thermostat device
                 for DomDevice in Devices:
                     if Devices[DomDevice].Type == 242 and Devices[DomDevice].DeviceID == EQ3device.rf_address:
                         if Devices[DomDevice].sValue != str(EQ3device.target_temperature):
-                            Domoticz.Log("Updating value for " + Devices[DomDevice].Name + ": " + str(EQ3device.target_temperature) + "\u00b0C")
+                            Domoticz.Log("Updating value for " + Devices[DomDevice].Name + ": " + str(EQ3device.target_temperature) + " \u00b0C")
                             Devices[DomDevice].Update(0,str(EQ3device.target_temperature))           
                 # Look up & update corresponding Domoticz temperature device
                 for DomDevice in Devices:
                     if Devices[DomDevice].Type == 80 and Devices[DomDevice].DeviceID == EQ3device.rf_address:
                         if Devices[DomDevice].sValue != str(EQ3device.actual_temperature):
-                            Domoticz.Log("Updating value for " + Devices[DomDevice].Name + ": " + str(EQ3device.actual_temperature) + "\u00b0C")
+                            Domoticz.Log("Updating value for " + Devices[DomDevice].Name + ": " + str(EQ3device.actual_temperature) + " \u00b0C")
                             Devices[DomDevice].Update(0,str(EQ3device.actual_temperature))
             elif cube.is_windowshutter(EQ3device):
                 # Look up & update corresponding Domoticz contact device
