@@ -85,16 +85,16 @@ class BasePlugin:
             if not deviceFound:
                 Domoticz.Log("Adding device(s) for " + EQ3device.name)
                 if cube.is_thermostat(EQ3device):
-                    # Create percentage device
+                    # Create percentage device for valve position
                     Domoticz.Device(Name=EQ3device.name + " - Valve position" , Unit=len(Devices)+1, DeviceID=EQ3device.rf_address, Type=243, Subtype=6, Used=1).Create()
                     if not self.RoomHasThermostat[EQ3device.room_id]:
                         # Create thermostat device
-                        Domoticz.Device(Name=EQ3device.name, Unit=len(Devices)+1, DeviceID=EQ3device.rf_address, Type=242, Subtype=1, Used=1).Create()
+                        Domoticz.Device(Name=EQ3device.name + " - Thermostat", Unit=len(Devices)+1, DeviceID=EQ3device.rf_address, Type=242, Subtype=1, Used=1).Create()
                         # Create temperature device
                         Domoticz.Device(Name=EQ3device.name + " - Temperature", Unit=len(Devices)+1, DeviceID=EQ3device.rf_address, Type=80, Subtype=5, Used=1).Create()
                 if cube.is_wallthermostat(EQ3device):
                     # Create thermostat device
-                    Domoticz.Device(Name=EQ3device.name, Unit=len(Devices)+1, DeviceID=EQ3device.rf_address, Type=242, Subtype=1, Used=1).Create()
+                    Domoticz.Device(Name=EQ3device.name + " - Thermostat", Unit=len(Devices)+1, DeviceID=EQ3device.rf_address, Type=242, Subtype=1, Used=1).Create()
                     # Create temperature device
                     Domoticz.Device(Name=EQ3device.name + " - Temperature", Unit=len(Devices)+1, DeviceID=EQ3device.rf_address, Type=80, Subtype=5, Used=1).Create()
                 if cube.is_windowshutter(EQ3device):
