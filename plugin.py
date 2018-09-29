@@ -3,7 +3,7 @@
 # Author: mvzut
 #
 """
-<plugin key="eq3max" name="eQ-3 MAX!" author="mvzut" version="0.2.0">
+<plugin key="eq3max" name="eQ-3 MAX!" author="mvzut" version="0.3.0">
     <description>
         <h2>eQ-3 MAX! Cube plugin</h2><br/>
         <h3>Features</h3>
@@ -13,32 +13,36 @@
             Note that radiator valves only report temperature when they are moving!</li>
             <li>Valve position of radiator valves is reflected in percentage sensors</li>
             <li>Status of door and window contacts is reflected in contact sensors</li>
-        </ul>
-        <h3>Not working (yet)</h3>
-        <ul style="list-style-type:square">
-            <li>Adding devices (this has to be done using the eQ-3 MAX! software)</li>
-            <li>Auto/Manual/Holiday modes. In principle you don't need them anymore, since you can program your own timers and scripts for thermostats</li>
+            <li>(Optional) Thermostat modes can be viewed and changed with selector switches</li>
         </ul>
         <h3>Configuration</h3>
         <ul style="list-style-type:square">
             <li>Fill in the IP address of your eQ-3 MAX! Cube</li>
-            <li>Fill in the port number of your Cube. The default is 62910, no need to change this in most cases.</li>
-            <li>Choose a polling time. The default is 5 minutes, shorter periods can sometimes cause problems, the eQ-3 MAX! system doesn't seem to like too much traffic per hour.</li>
+            <li>Fill in the port number of your Cube. The default is 62910, no need to change this in most cases</li>
+            <li>Select if you want the plugin to create selector switches for the thermostat modes</li>
+            <li>Choose a polling time. The default is 5 minutes, shorter periods can sometimes cause problems, the eQ-3 MAX! system doesn't seem to like too much traffic per hour</li>
+            <li>Choose the debug mode, when debugging is on it will be more verbose in the log</li>
         </ul>
     </description>
     <params>
         <param field="Address" label="Cube address" width="150px" required="true" default="192.168.0.1"/>
         <param field="Port" label="Cube port" width="75px" required="true" default="62910"/>
+        <param field="Mode1" label="Use thermostat modes" width="75px" required="true">
+            <options>
+                <option label="No" value="False" default="true"/>
+                <option label="Yes" value="True"/>
+            </options>
+        </param>
         <param field="Mode2" label="Poll every" width="150px" required="true">
             <options>
                 <option label="1 minute" value=60/>
                 <option label="2 minutes" value=120/>
-                <option label="5 minutes" value=300 default="true"/>
+                <option label="5 minutes (default)" value=300 default="true"/>
                 <option label="10 minutes" value=600/>
                 <option label="30 minutes" value=1800/>
             </options>
         </param>
-        <param field="Mode5" label="Debug mode" width="75px" required="true">
+        <param field="Mode3" label="Debug mode" width="75px" required="true">
             <options>
                 <option label="Off" value="False" default="true"/>
                 <option label="On" value="True"/>
@@ -51,6 +55,11 @@
 import Domoticz
 from maxcube.cube import MaxCube
 from maxcube.connection import MaxCubeConnection
+from maxcube.device import \
+    MAX_DEVICE_MODE_AUTOMATIC, \
+    MAX_DEVICE_MODE_MANUAL, \
+    MAX_DEVICE_MODE_VACATION, \
+    MAX_DEVICE_MODE_BOOST
 
 class BasePlugin:
     enabled = False
@@ -59,7 +68,7 @@ class BasePlugin:
         
     def onStart(self):
         # Set debugging
-        if Parameters["Mode5"]=="True": 
+        if Parameters["Mode3"]=="True": 
             Domoticz.Debugging(2)
             Domoticz.Debug("Debugging mode activated")
 
@@ -73,9 +82,12 @@ class BasePlugin:
         cube = MaxCube(MaxCubeConnection(Parameters["Address"], int(Parameters["Port"])))
 
         # Check which rooms have a wall mounterd thermostat
+        Domoticz.Debug("Number of rooms found: " + str(len(cube.rooms)))
         self.RoomHasThermostat=[False] * (len(cube.rooms)+1)
         for EQ3device in cube.devices:
-            if cube.is_wallthermostat(EQ3device): self.RoomHasThermostat[EQ3device.room_id] = True
+            if cube.is_wallthermostat(EQ3device):
+                self.RoomHasThermostat[EQ3device.room_id] = True
+                Domoticz.Debug("Room " + str(EQ3device.room_id) + " (" + cube.room_by_id(EQ3device.room_id).name + ") has a thermostat")
 
         for EQ3device in cube.devices:
            # Add devices if required
@@ -90,11 +102,25 @@ class BasePlugin:
                     if not self.RoomHasThermostat[EQ3device.room_id]:
                         # Create thermostat device
                         Domoticz.Device(Name=EQ3device.name + " - Thermostat", Unit=len(Devices)+1, DeviceID=EQ3device.rf_address, Type=242, Subtype=1, Used=1).Create()
+                        # Create mode switch if requested
+                        if Parameters["Mode1"]=="True":
+                            Options = {"LevelActions": "||", 
+                                       "LevelNames": "Auto|Manual|Vacation",
+                                       "LevelOffHidden": "false",
+                                       "SelectorStyle": "1"}
+                            Domoticz.Device(Name=EQ3device.name + " - Mode", Unit=len(Devices)+1, DeviceID=EQ3device.rf_address, Type=244, Subtype=62, Switchtype=18,  Options=Options, Used=1).Create()
                         # Create temperature device
                         Domoticz.Device(Name=EQ3device.name + " - Temperature", Unit=len(Devices)+1, DeviceID=EQ3device.rf_address, Type=80, Subtype=5, Used=1).Create()
                 if cube.is_wallthermostat(EQ3device):
                     # Create thermostat device
                     Domoticz.Device(Name=EQ3device.name + " - Thermostat", Unit=len(Devices)+1, DeviceID=EQ3device.rf_address, Type=242, Subtype=1, Used=1).Create()
+                    # Create mode switch if requested
+                    if Parameters["Mode1"]=="True":
+                        Options = {"LevelActions": "||", 
+                                    "LevelNames": "Auto|Manual|Vacation",
+                                    "LevelOffHidden": "false",
+                                    "SelectorStyle": "1"}
+                        Domoticz.Device(Name=EQ3device.name + " - Mode", Unit=len(Devices)+1, Type=244, Subtype=62, Switchtype=18,  Options=Options, Used=1).Create()
                     # Create temperature device
                     Domoticz.Device(Name=EQ3device.name + " - Temperature", Unit=len(Devices)+1, DeviceID=EQ3device.rf_address, Type=80, Subtype=5, Used=1).Create()
                 if cube.is_windowshutter(EQ3device):
@@ -108,8 +134,25 @@ class BasePlugin:
             for EQ3device in cube.devices:
                 if Devices[Unit].DeviceID == EQ3device.rf_address:
                     cube.set_target_temperature(EQ3device, Level)
-                    #Devices[Unit].Update(nValue=0, sValue=str(Level))
-                    Devices[Unit].Refresh
+                    Devices[Unit].Update(nValue=0, sValue=str(Level))
+                    Devices[Unit].Refresh()
+        if Devices[Unit].Type == 244:
+            if Level == 00:
+                mode = MAX_DEVICE_MODE_AUTOMATIC
+                mode_text = "Auto"
+            elif Level == 10:
+                mode = MAX_DEVICE_MODE_MANUAL
+                mode_text = "Manual"
+            elif Level == 20:
+                mode = MAX_DEVICE_MODE_VACATION
+                mode_text = "Vacation"
+            Domoticz.Debug("Mode changed for " + Devices[Unit].Name + ". New mode: " + mode_text)
+            cube = MaxCube(MaxCubeConnection(Parameters["Address"], int(Parameters["Port"])))
+            for EQ3device in cube.devices:
+                if Devices[Unit].DeviceID == EQ3device.rf_address:
+                    cube.set_mode(EQ3device, mode)
+                    Devices[Unit].Update(nValue=0, sValue=str(Level))
+                    Devices[Unit].Refresh()
 
     def onHeartbeat(self):
         #Cancel the rest of this function if this heartbeat needs to be skipped
@@ -139,6 +182,13 @@ class BasePlugin:
                             if Devices[DomDevice].sValue != str(EQ3device.target_temperature):
                                 Domoticz.Log("Updating setpoint for " + Devices[DomDevice].Name + ": " + str(EQ3device.target_temperature) + " \u00b0C")
                                 Devices[DomDevice].Update(nValue=0, sValue=str(EQ3device.target_temperature), BatteryLevel=(255-EQ3device.battery*255))
+                        # Update thermostat mode if available
+                        if Devices[DomDevice].Type == 244 and Devices[DomDevice].DeviceID == EQ3device.rf_address:
+                            if EQ3device.mode == MAX_DEVICE_MODE_AUTOMATIC: mode = "00"
+                            elif EQ3device.mode == MAX_DEVICE_MODE_MANUAL: mode = "10"
+                            elif EQ3device.mode == MAX_DEVICE_MODE_VACATION: mode = "20"
+                            Domoticz.Log("Updating mode for " + Devices[DomDevice].Name)
+                            Devices[DomDevice].Update(nValue=0, sValue=mode, BatteryLevel=(255-EQ3device.battery*255))
                     # Look up & update corresponding Domoticz temperature device
                     for DomDevice in Devices:
                         if Devices[DomDevice].Type == 80 and Devices[DomDevice].DeviceID == EQ3device.rf_address:
@@ -152,6 +202,14 @@ class BasePlugin:
                         if Devices[DomDevice].sValue != str(EQ3device.target_temperature):
                             Domoticz.Log("Updating setpoint for " + Devices[DomDevice].Name + ": " + str(EQ3device.target_temperature) + " \u00b0C")
                             Devices[DomDevice].Update(nValue=0, sValue=str(EQ3device.target_temperature), BatteryLevel=(255-EQ3device.battery*255))
+                        # Update thermostat mode if available
+                        if Devices[DomDevice].Type == 244 and Devices[DomDevice].DeviceID == EQ3device.rf_address:
+                            if EQ3device.mode == MAX_DEVICE_MODE_AUTOMATIC: mode = "00"
+                            elif EQ3device.mode == MAX_DEVICE_MODE_MANUAL: mode = "10"
+                            elif EQ3device.mode == MAX_DEVICE_MODE_VACATION: mode = "20"
+                            if Devices[DomDevice].sValue != mode:
+                                Domoticz.Log("Updating mode for " + Devices[DomDevice].Name)
+                                Devices[DomDevice].Update(nValue=0, sValue=mode, BatteryLevel=(255-EQ3device.battery*255))
                 # Look up & update corresponding Domoticz temperature device
                 for DomDevice in Devices:
                     if Devices[DomDevice].Type == 80 and Devices[DomDevice].DeviceID == EQ3device.rf_address:
