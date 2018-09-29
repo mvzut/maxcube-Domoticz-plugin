@@ -84,7 +84,7 @@ class BasePlugin:
         # Check which rooms have a wall mounterd thermostat
         max_room = 0
         for room in cube.rooms: max_room += 1
-        Domoticz.Debug("Number of rooms found: " + str((len(cube.rooms))) + " (highest number: " + str(max_room)) + ")"
+        Domoticz.Debug("Number of rooms found: " + str((len(cube.rooms))) + " (highest number: " + str(max_room) + ")")
         self.RoomHasThermostat=[False] * (max_room+1)
         for EQ3device in cube.devices:
             if cube.is_wallthermostat(EQ3device):
