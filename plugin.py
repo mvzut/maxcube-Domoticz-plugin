@@ -168,6 +168,7 @@ class BasePlugin:
 
         # Update devices in Domoticz
         for EQ3device in cube.devices:
+            Domoticz.Debug("Checking device '" + EQ3device.name + "' in room " + str(EQ3device.room_id))
             if cube.is_thermostat(EQ3device):
                 # Look up & update corresponding Domoticz percentage device
                 for DomDevice in Devices:
