@@ -3,7 +3,7 @@
 # Author: mvzut
 #
 """
-<plugin key="eq3max" name="eQ-3 MAX!" author="mvzut" version="0.3.1">
+<plugin key="eq3max" name="eQ-3 MAX!" author="mvzut" version="0.3.2">
     <description>
         <h2>eQ-3 MAX! Cube plugin</h2><br/>
         <h3>Features</h3>
@@ -83,7 +83,7 @@ class BasePlugin:
 
         # Check which rooms have a wall mounterd thermostat
         max_room = 0
-        for room in cube.rooms: max_room += 1
+        for room in cube.rooms: max_room = room.id
         Domoticz.Debug("Number of rooms found: " + str((len(cube.rooms))) + " (highest number: " + str(max_room) + ")")
         self.RoomHasThermostat=[False] * (max_room+1)
         for EQ3device in cube.devices:
