@@ -3,7 +3,7 @@
 # Author: mvzut
 #
 """
-<plugin key="eq3max" name="eQ-3 MAX!" author="mvzut" version="0.3.2">
+<plugin key="eq3max" name="eQ-3 MAX!" author="mvzut" version="0.4.0">
     <description>
         <h2>eQ-3 MAX! Cube plugin</h2><br/>
         <h3>Features</h3>
@@ -65,6 +65,43 @@ class BasePlugin:
     enabled = False
     def __init__(self):
         return
+
+    def CheckDevice(self, name, deviceid, typename):
+        switchtype = 0
+        image = 0
+        options = {"LevelActions": "||", 
+                   "LevelNames": "Auto|Manual|Vacation",
+                   "LevelOffHidden": "false",
+                   "SelectorStyle": "1"}        
+        if typename == "Valve":
+            devicetype = 243
+            subtype = 6
+        elif typename == "Thermostat":
+            devicetype = 242
+            subtype = 1
+        elif typename == "Temperature":
+            devicetype = 80
+            subtype = 5
+        elif typename == "Mode":
+            devicetype = 244
+            subtype = 62
+            switchtype = 18
+            image = 15
+        elif typename == "Contact":
+            devicetype = 244
+            subtype = 73
+            switchtype = 2
+        else:
+            Domoticz.Debug("Could not create device with type " + typename)
+            return
+        # Check if device with given DeviceID and Type is already present
+        DeviceFound = False
+        for Device in Devices:
+            if Devices[Device].DeviceID == deviceid and Devices[Device].Type == devicetype: DeviceFound = True
+        # If not found, create it
+        if not DeviceFound:
+            Domoticz.Log("Creating device " + name + " - " + typename)
+            Domoticz.Device(Name=name + " - " + typename, Unit=len(Devices)+1, DeviceID=deviceid, Type=devicetype, Subtype=subtype, Switchtype=switchtype, Options=options, Image = image, Used=1).Create()
         
     def onStart(self):
         # Set debugging
@@ -93,43 +130,25 @@ class BasePlugin:
                 Domoticz.Debug("Room " + str(EQ3device.room_id) + " (" + cube.room_by_id(EQ3device.room_id).name + ") has a thermostat")
 
         for EQ3device in cube.devices:
-           # Add devices if required
-            deviceFound = False
-            for Device in Devices:
-                if Devices[Device].DeviceID == EQ3device.rf_address: deviceFound = True
-            if not deviceFound:
-                Domoticz.Log("Adding device(s) for " + EQ3device.name)
-                if cube.is_thermostat(EQ3device):
-                    # Create percentage device for valve position
-                    Domoticz.Device(Name=EQ3device.name + " - Valve position" , Unit=len(Devices)+1, DeviceID=EQ3device.rf_address, Type=243, Subtype=6, Used=1).Create()
-                    if not self.RoomHasThermostat[EQ3device.room_id]:
-                        # Create thermostat device
-                        Domoticz.Device(Name=EQ3device.name + " - Thermostat", Unit=len(Devices)+1, DeviceID=EQ3device.rf_address, Type=242, Subtype=1, Used=1).Create()
-                        # Create mode switch if requested
-                        if Parameters["Mode1"]=="True":
-                            Options = {"LevelActions": "||", 
-                                       "LevelNames": "Auto|Manual|Vacation",
-                                       "LevelOffHidden": "false",
-                                       "SelectorStyle": "1"}
-                            Domoticz.Device(Name=EQ3device.name + " - Mode", Unit=len(Devices)+1, DeviceID=EQ3device.rf_address, Type=244, Subtype=62, Switchtype=18,  Options=Options, Used=1).Create()
-                        # Create temperature device
-                        Domoticz.Device(Name=EQ3device.name + " - Temperature", Unit=len(Devices)+1, DeviceID=EQ3device.rf_address, Type=80, Subtype=5, Used=1).Create()
-                if cube.is_wallthermostat(EQ3device):
-                    # Create thermostat device
-                    Domoticz.Device(Name=EQ3device.name + " - Thermostat", Unit=len(Devices)+1, DeviceID=EQ3device.rf_address, Type=242, Subtype=1, Used=1).Create()
+            if cube.is_thermostat(EQ3device):
+                # Create percentage device for valve position if not present yet
+                self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Valve")
+                if not self.RoomHasThermostat[EQ3device.room_id]:
+                    # Create thermostat device if not present yet
+                    self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Thermostat")
                     # Create mode switch if requested
-                    if Parameters["Mode1"]=="True":
-                        Options = {"LevelActions": "||", 
-                                    "LevelNames": "Auto|Manual|Vacation",
-                                    "LevelOffHidden": "false",
-                                    "SelectorStyle": "1"}
-                        Domoticz.Device(Name=EQ3device.name + " - Mode", Unit=len(Devices)+1, Type=244, Subtype=62, Switchtype=18,  Options=Options, Used=1).Create()
-                    # Create temperature device
-                    Domoticz.Device(Name=EQ3device.name + " - Temperature", Unit=len(Devices)+1, DeviceID=EQ3device.rf_address, Type=80, Subtype=5, Used=1).Create()
-                if cube.is_windowshutter(EQ3device):
-                    # Create contact device
-                    Domoticz.Device(Name=EQ3device.name, Unit=len(Devices)+1, DeviceID=EQ3device.rf_address, Type=244, Subtype=73, Switchtype=2, Used=1).Create()
-
+                    if Parameters["Mode1"]=="True": self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Mode")
+            elif cube.is_wallthermostat(EQ3device):
+                # Create thermostat device if not present yet
+                self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Thermostat")
+                # Create mode switch if requested
+                if Parameters["Mode1"]=="True": self.CheckDevice(EQ3device.name + " - Mode", EQ3device.rf_address, "Mode")
+                # Create temperature device if not present yet
+                self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Temperature")
+            elif cube.is_windowshutter(EQ3device):
+                # Create contact device if not present yet
+                self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Contact")
+ 
     def onCommand(self, Unit, Command, Level, Hue):
         if Devices[Unit].Type == 242:
             Domoticz.Debug("Setpoint changed for " + Devices[Unit].Name + ". New setpoint: " + str(Level))
