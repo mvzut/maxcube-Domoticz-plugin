@@ -147,7 +147,7 @@ class BasePlugin:
                 self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Temperature")
                 # Create mode switch if requested
                 if Parameters["Mode1"]=="True": self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Mode")
-           elif cube.is_windowshutter(EQ3device):
+            elif cube.is_windowshutter(EQ3device):
                 # Create contact device if not present yet
                 self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Contact")
  
