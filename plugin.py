@@ -95,8 +95,10 @@ class BasePlugin:
             if Devices[Device].DeviceID == deviceid and Devices[Device].Type == devicetype: DeviceFound = True
         # If not found, create it
         if not DeviceFound:
-            Domoticz.Log("Creating device " + name + " - " + typename)
+            Check = len(Devices)
             Domoticz.Device(Name=name + " - " + typename, Unit=len(Devices)+1, DeviceID=deviceid, Type=devicetype, Subtype=subtype, Switchtype=switchtype, Options=options, Image = image, Used=1).Create()
+            if len(Devices) == Check:
+                Domoticz.Error("Device '" + name + " - " + typename + "' could not be created. Is 'Accept new Hardware Devices' enabled under Settings?")
         
     def onStart(self):
         # Set debugging
@@ -113,7 +115,7 @@ class BasePlugin:
         Domoticz.Debug("Reading e-Q3 MAX! devices from Cube...")
         cube = MaxCube(MaxCubeConnection(Parameters["Address"], int(Parameters["Port"])))
 
-        # Check which rooms have a wall thermostat
+        # Check which rooms have a wall mounterd thermostat
         max_room = 0
         for room in cube.rooms:
             if room.id > max_room: max_room = room.id
