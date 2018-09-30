@@ -143,11 +143,11 @@ class BasePlugin:
             elif cube.is_wallthermostat(EQ3device):
                 # Create thermostat device if not present yet
                 self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Thermostat")
-                # Create mode switch if requested
-                if Parameters["Mode1"]=="True": self.CheckDevice(EQ3device.name + " - Mode", EQ3device.rf_address, "Mode")
                 # Create temperature device if not present yet
                 self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Temperature")
-            elif cube.is_windowshutter(EQ3device):
+                # Create mode switch if requested
+                if Parameters["Mode1"]=="True": self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Mode")
+           elif cube.is_windowshutter(EQ3device):
                 # Create contact device if not present yet
                 self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Contact")
  
