@@ -129,26 +129,19 @@ class BasePlugin:
                 self.RoomHasThermostat[EQ3device.room_id] = True
                 Domoticz.Debug("Room " + str(EQ3device.room_id) + " (" + cube.room_by_id(EQ3device.room_id).name + ") has a thermostat")
 
+        # Create devices if necessary
         for EQ3device in cube.devices:
             if cube.is_thermostat(EQ3device):
-                # Create percentage device for valve position if not present yet
                 self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Valve")
                 if not self.RoomHasThermostat[EQ3device.room_id]:
-                    # Create thermostat device if not present yet
                     self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Thermostat")
-                    # Create temperature device if not present yet
                     self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Temperature")
-                    # Create mode switch if requested
                     if Parameters["Mode1"]=="True": self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Mode")
             elif cube.is_wallthermostat(EQ3device):
-                # Create thermostat device if not present yet
                 self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Thermostat")
-                # Create temperature device if not present yet
                 self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Temperature")
-                # Create mode switch if requested
                 if Parameters["Mode1"]=="True": self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Mode")
             elif cube.is_windowshutter(EQ3device):
-                # Create contact device if not present yet
                 self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Contact")
  
     def onCommand(self, Unit, Command, Level, Hue):
