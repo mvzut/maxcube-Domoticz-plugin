@@ -3,7 +3,7 @@
 # Author: mvzut
 #
 """
-<plugin key="eq3max" name="eQ-3 MAX!" author="mvzut" version="0.4.0">
+<plugin key="eq3max" name="eQ-3 MAX!" author="mvzut" version="0.4.2">
     <description>
         <h2>eQ-3 MAX! Cube plugin</h2><br/>
         <h3>Features</h3>
@@ -69,8 +69,8 @@ class BasePlugin:
     def CheckDevice(self, name, deviceid, typename):
         switchtype = 0
         image = 0
-        options = {"LevelActions": "||", 
-                   "LevelNames": "Auto|Manual|Vacation",
+        options = {"LevelActions": "|||", 
+                   "LevelNames": "Auto|Manual|Vacation|Boost",
                    "LevelOffHidden": "false",
                    "SelectorStyle": "1"}        
         if typename == "Valve":
@@ -153,7 +153,7 @@ class BasePlugin:
                     cube.set_target_temperature(EQ3device, Level)
                     Devices[Unit].Update(nValue=0, sValue=str(Level))
                     Devices[Unit].Refresh()
-        if Devices[Unit].Type == 244:
+        if Devices[Unit].Type == 244 and Devices[Unit].SubType == 62:
             if Level == 00:
                 mode = MAX_DEVICE_MODE_AUTOMATIC
                 mode_text = "Auto"
@@ -163,6 +163,9 @@ class BasePlugin:
             elif Level == 20:
                 mode = MAX_DEVICE_MODE_VACATION
                 mode_text = "Vacation"
+            elif Level == 30:
+                mode = MAX_DEVICE_MODE_BOOST
+                mode_text = "Boost"
             Domoticz.Debug("Mode changed for " + Devices[Unit].Name + ". New mode: " + mode_text)
             cube = MaxCube(MaxCubeConnection(Parameters["Address"], int(Parameters["Port"])))
             for EQ3device in cube.devices:
@@ -205,6 +208,7 @@ class BasePlugin:
                             if EQ3device.mode == MAX_DEVICE_MODE_AUTOMATIC: mode = "00"
                             elif EQ3device.mode == MAX_DEVICE_MODE_MANUAL: mode = "10"
                             elif EQ3device.mode == MAX_DEVICE_MODE_VACATION: mode = "20"
+                            elif EQ3device.mode == MAX_DEVICE_MODE_BOOST: mode = "30"
                             Domoticz.Log("Updating mode for " + Devices[DomDevice].Name)
                             Devices[DomDevice].Update(nValue=0, sValue=mode, BatteryLevel=(255-EQ3device.battery*255))
                     # Look up & update corresponding Domoticz temperature device
@@ -225,6 +229,7 @@ class BasePlugin:
                             if EQ3device.mode == MAX_DEVICE_MODE_AUTOMATIC: mode = "00"
                             elif EQ3device.mode == MAX_DEVICE_MODE_MANUAL: mode = "10"
                             elif EQ3device.mode == MAX_DEVICE_MODE_VACATION: mode = "20"
+                            elif EQ3device.mode == MAX_DEVICE_MODE_BOOST: mode = "30"
                             if Devices[DomDevice].sValue != mode:
                                 Domoticz.Log("Updating mode for " + Devices[DomDevice].Name)
                                 Devices[DomDevice].Update(nValue=0, sValue=mode, BatteryLevel=(255-EQ3device.battery*255))
