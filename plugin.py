@@ -136,6 +136,8 @@ class BasePlugin:
                 if not self.RoomHasThermostat[EQ3device.room_id]:
                     # Create thermostat device if not present yet
                     self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Thermostat")
+                    # Create temperature device if not present yet
+                    self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Temperature")
                     # Create mode switch if requested
                     if Parameters["Mode1"]=="True": self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Mode")
             elif cube.is_wallthermostat(EQ3device):
