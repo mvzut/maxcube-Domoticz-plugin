@@ -150,7 +150,6 @@ class BasePlugin:
         if Parameters["Mode5"]=="True": 
             Domoticz.Debugging(2)
             Domoticz.Debug("Debugging mode activated")
-            DumpConfigToLog()
 
         # Read Cube for intialization of devices
         Domoticz.Debug("Reading e-Q3 MAX! devices from Cube...")
