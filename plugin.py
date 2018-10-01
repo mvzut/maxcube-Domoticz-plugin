@@ -134,7 +134,7 @@ class BasePlugin:
             elif EQ3device.is_open == True:
                 svalue = "On"
                 nvalue = 1
-
+        # Update device if it matches and if it has changed
         if Devices[DOMdevice].Type == devicetype and Devices[DOMdevice].DeviceID == EQ3device.rf_address:
             if Devices[DOMdevice].sValue != svalue:
                 Domoticz.Log("Updating " + Devices[DOMdevice].Name)
@@ -230,25 +230,18 @@ class BasePlugin:
             if cube.is_thermostat(EQ3device):
                 # Look up & update Domoticz devices for radiator valves
                 for DomDevice in Devices:
-                    # Valve position
                     self.UpdateDevice(DomDevice, EQ3device, "Valve")
                 if not self.RoomHasThermostat[EQ3device.room_id]:
                     for DomDevice in Devices:
-                        # Thermostat
                         self.UpdateDevice(DomDevice, EQ3device, "Thermostat")
-                        # Temperature
                         self.UpdateDevice(DomDevice, EQ3device, "Temperature")
-                        # Thermostat mode
                         self.UpdateDevice(DomDevice, EQ3device, "Mode")
 
             elif cube.is_wallthermostat(EQ3device):
                 # Look up & update Domoticz devices for wall thermostats
                 for DomDevice in Devices:
-                    # Thermostat
                     self.UpdateDevice(DomDevice, EQ3device, "Thermostat")
-                    # Temperature
                     self.UpdateDevice(DomDevice, EQ3device, "Temperature")
-                    # Thermostat mode
                     self.UpdateDevice(DomDevice, EQ3device, "Mode")
 
             elif cube.is_windowshutter(EQ3device):
