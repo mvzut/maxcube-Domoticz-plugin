@@ -3,37 +3,48 @@
 # Author: mvzut
 #
 """
-<plugin key="eq3max" name="eQ-3 MAX!" author="mvzut" version="0.4.2">
+<plugin key="eq3max" name="eQ-3 MAX!" author="mvzut" version="0.5.0">
     <description>
         <h2>eQ-3 MAX! Cube plugin</h2><br/>
         <h3>Features</h3>
         <ul style="list-style-type:square">
-            <li>Thermostats and radiator valves are represented as Domoticz thermostat devices, which can be controlled (also by scripts), programmed, etc.</li>
-            <li>Temperature sensors reflect the actual temperature retrieved from wall mounted thermostats or radiator valves.
-            Note that radiator valves only report temperature when they are moving!</li>
-            <li>Valve position of radiator valves is reflected in percentage sensors</li>
-            <li>Status of door and window contacts is reflected in contact sensors</li>
-            <li>(Optional) Thermostat modes can be viewed and changed with selector switches</li>
+            <li>Creates devices for wall mounted thermostats, radiator valves and door/window sensors.</li>
+            <li>If a room has a wall thermostat, this will act as setpoint and temperature sensor in that room.
+            Otherwise, thermostats and temperature sensors will be created for every radiator valve.
+            Note that radiator valves only report temperature when the valves are moving!</li>
+            <li>Thermostats and door/window switches are always created. Temperature sensors, valve positions and switches for thermostat mode are optional.</li>
         </ul>
         <h3>Configuration</h3>
         <ul style="list-style-type:square">
             <li>Fill in the IP address of your eQ-3 MAX! Cube</li>
-            <li>Fill in the port number of your Cube. The default is 62910, no need to change this in most cases</li>
-            <li>Select if you want the plugin to create selector switches for the thermostat modes</li>
+            <li>Fill in the port number of your Cube. The default is 62910, ther is no need to change this in most cases.</li>
+            <li>Select which  device types you want the plugin to create.</li>
             <li>Choose a polling time. The default is 5 minutes, shorter periods can sometimes cause problems, the eQ-3 MAX! system doesn't seem to like too much traffic per hour</li>
-            <li>Choose the debug mode, when debugging is on it will be more verbose in the log</li>
+            <li>Choose the debug mode, when debugging is on it will be more verbose in the log.</li>
         </ul>
     </description>
     <params>
         <param field="Address" label="Cube address" width="150px" required="true" default="192.168.0.1"/>
-        <param field="Port" label="Cube port" width="75px" required="true" default="62910"/>
-        <param field="Mode1" label="Use thermostat modes" width="75px" required="true">
+        <param field="Port" label="Cube port" width="150px" required="true" default="62910"/>
+        <param field="Mode1" label="Temperature sensors" width="150px" required="true">
             <options>
-                <option label="No" value="False" default="true"/>
-                <option label="Yes" value="True"/>
+                <option label="Do not create" value="False"/>
+                <option label="Create &amp; update" value="True" default="true"/>
             </options>
         </param>
-        <param field="Mode2" label="Poll every" width="150px" required="true">
+        <param field="Mode2" label="Valve positions" width="150px" required="true">
+            <options>
+                <option label="Do not create" value="False"/>
+                <option label="Create &amp; update" value="True" default="true"/>
+            </options>
+        </param>
+        <param field="Mode3" label="Thermostat modes" width="150px" required="true">
+            <options>
+                <option label="Do not create" value="False" default="true"/>
+                <option label="Create &amp; update" value="True"/>
+            </options>
+        </param>
+        <param field="Mode4" label="Poll every" width="150px" required="true">
             <options>
                 <option label="1 minute" value=60/>
                 <option label="2 minutes" value=120/>
@@ -42,7 +53,7 @@
                 <option label="30 minutes" value=1800/>
             </options>
         </param>
-        <param field="Mode3" label="Debug mode" width="75px" required="true">
+        <param field="Mode5" label="Debug mode" width="75px" required="true">
             <options>
                 <option label="Off" value="False" default="true"/>
                 <option label="On" value="True"/>
@@ -101,15 +112,15 @@ class BasePlugin:
                 Domoticz.Error("Device '" + name + " - " + typename + "' could not be created. Is 'Accept new Hardware Devices' enabled under Settings?")
         
     def onStart(self):
-        # Set debugging
-        if Parameters["Mode3"]=="True": 
-            Domoticz.Debugging(2)
-            Domoticz.Debug("Debugging mode activated")
-
         # Set heartbeat
-        self.skipbeats=int(Parameters["Mode2"])/30
+        self.skipbeats=int(Parameters["Mode4"])/30
         self.beats=self.skipbeats
         Domoticz.Heartbeat(30)
+
+        # Set debugging
+        if Parameters["Mode5"]=="True": 
+            Domoticz.Debugging(2)
+            Domoticz.Debug("Debugging mode activated")
 
         # Read Cube for intialization of devices
         Domoticz.Debug("Reading e-Q3 MAX! devices from Cube...")
@@ -129,15 +140,15 @@ class BasePlugin:
         # Create devices if necessary
         for EQ3device in cube.devices:
             if cube.is_thermostat(EQ3device):
-                self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Valve")
+                if Parameters["Mode2"]=="True": self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Valve")
                 if not self.RoomHasThermostat[EQ3device.room_id]:
                     self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Thermostat")
-                    self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Temperature")
-                    if Parameters["Mode1"]=="True": self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Mode")
+                    if Parameters["Mode1"]=="True": self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Temperature")
+                    if Parameters["Mode3"]=="True": self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Mode")
             elif cube.is_wallthermostat(EQ3device):
                 self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Thermostat")
-                self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Temperature")
-                if Parameters["Mode1"]=="True": self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Mode")
+                if Parameters["Mode1"]=="True": self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Temperature")
+                if Parameters["Mode3"]=="True": self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Mode")
             elif cube.is_windowshutter(EQ3device):
                 self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Contact")
  
