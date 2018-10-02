@@ -136,7 +136,7 @@ class BasePlugin:
                 nvalue = 1
         # Update device if it matches and if it has changed
         if Devices[DOMdevice].Type == devicetype and Devices[DOMdevice].DeviceID == EQ3device.rf_address:
-            if Devices[DOMdevice].sValue != svalue:
+            if Devices[DOMdevice].sValue != svalue and svalue !=0:
                 Domoticz.Log("Updating " + Devices[DOMdevice].Name)
                 Devices[DOMdevice].Update(nValue=nvalue, sValue=svalue, BatteryLevel=(255-EQ3device.battery*255))
         
