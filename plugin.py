@@ -12,7 +12,7 @@
             <li>If a room has a wall thermostat, this will act as setpoint and temperature sensor in that room.
             Otherwise, thermostats and temperature sensors will be created for every radiator valve.
             Note that radiator valves only report temperature when the valves are moving!</li>
-            <li>Thermostats and door/window switches are always created. Temperature sensors, valve positions and switches for thermostat mode are optional.</li>
+            <li>Thermostats and door/window switches are always created. Temperature sensors, valve positions and thermostat mode switches are optional.</li>
         </ul>
         <h3>Configuration</h3>
         <ul style="list-style-type:square">
@@ -20,6 +20,7 @@
             <li>Fill in the port number of your Cube. The default is 62910, ther is no need to change this in most cases.</li>
             <li>Select which  device types you want the plugin to create.</li>
             <li>Choose a polling time. The default is 5 minutes, shorter periods can sometimes cause problems, the eQ-3 MAX! system doesn't seem to like too much traffic per hour.</li>
+            <li>Select if obsolete devices should be deleted (i.e. if you later decide you don't want specific device types).</li>
             <li>Choose the debug mode, when debugging is on it will be more verbose in the log.</li>
         </ul>
     </description>
