@@ -3,7 +3,7 @@
 # Author: mvzut
 #
 """
-<plugin key="eq3max" name="eQ-3 MAX!" author="mvzut" version="0.5.0">
+<plugin key="eq3max" name="eQ-3 MAX!" author="mvzut" version="0.5.2">
     <description>
         <h2>eQ-3 MAX! Cube plugin</h2><br/>
         <h3>Features</h3>
@@ -53,7 +53,13 @@
                 <option label="30 minutes" value=1800/>
             </options>
         </param>
-        <param field="Mode5" label="Debug mode" width="75px" required="true">
+        <param field="Mode5" label="Remove obsolete devices" width="75px" required="true">
+            <options>
+                <option label="Yes" value="True" default="true"/>
+                <option label="No" value="False"/>
+            </options>
+        </param>
+        <param field="Mode6" label="Debug mode" width="75px" required="true">
             <options>
                 <option label="Off" value="False" default="true"/>
                 <option label="On" value="True"/>
@@ -62,6 +68,7 @@
     </params>
 </plugin>
 """
+
 
 import Domoticz
 from maxcube.cube import MaxCube
@@ -72,7 +79,15 @@ class BasePlugin:
     def __init__(self):
         return
 
+
     def CheckDevice(self, name, deviceid, typename):
+        #Check if device is wanted
+        DeviceWanted = True
+        if typename == "Valve" and Parameters["Mode2"] == "False" or \
+           typename == "Temperature" and Parameters["Mode1"] == "False" or \
+           typename == "Mode" and Parameters["Mode3"] == "False":
+            DeviceWanted = False
+        # Initialization of variables for device creation
         switchtype = 0
         image = 0
         options = {"LevelActions": "|||", 
@@ -97,21 +112,29 @@ class BasePlugin:
             devicetype = 244
             subtype = 73
             switchtype = 2
-        else:
-            Domoticz.Debug("Cannot create device, unknown type (" + typename + ")")
-            return
+
         # Check if device with given DeviceID and Type is already present
         DeviceFound = False
         for Device in Devices:
-            if Devices[Device].DeviceID == deviceid and Devices[Device].Type == devicetype: DeviceFound = True
-        # If not found, create it
-        if not DeviceFound:
+            if Devices[Device].DeviceID == deviceid and Devices[Device].Type == devicetype:
+                DeviceFound = True
+                # Delete found device if not wanted anymore and "Delete obsolete devices" is turned on
+                if not DeviceWanted and Parameters["Mode5"] == "True":
+                    Domoticz.Log("Deleting device " + Devices[Device].Name)
+                    Devices[Device].Delete()
+                    break
+
+        # If device not found but wanted, create it
+        if not DeviceFound and DeviceWanted:
             Check = len(Devices)
             Domoticz.Device(Name=name + " - " + typename, Unit=len(Devices)+1, DeviceID=deviceid, Type=devicetype, Subtype=subtype, Switchtype=switchtype, Options=options, Image = image, Used=1).Create()
             if len(Devices) == Check:
+                # Device not created!
                 Domoticz.Error("Device '" + Parameters["Name"] + " - " + name + " - " + typename + "' could not be created. Is 'Accept new Hardware Devices' enabled under Settings?")
             else:
+                # Device created
                 Domoticz.Log("Created device '" + Parameters["Name"] + " - " + name + " - " + typename + "'")
+
 
     def UpdateDevice(self, DOMdevice, EQ3device, typename):
         nvalue = 0
@@ -134,12 +157,14 @@ class BasePlugin:
             elif EQ3device.is_open == True:
                 svalue = "On"
                 nvalue = 1
+
         # Update device if it matches and if it has changed
         if Devices[DOMdevice].Type == devicetype and Devices[DOMdevice].DeviceID == EQ3device.rf_address:
             if Devices[DOMdevice].sValue != svalue and svalue !=0:
                 Domoticz.Log("Updating " + Devices[DOMdevice].Name)
                 Devices[DOMdevice].Update(nValue=nvalue, sValue=svalue, BatteryLevel=(255-EQ3device.battery*255))
-        
+
+
     def onStart(self):
         # Set heartbeat
         self.skipbeats=int(Parameters["Mode4"])/30
@@ -147,7 +172,7 @@ class BasePlugin:
         Domoticz.Heartbeat(30)
 
         # Set debugging
-        if Parameters["Mode5"]=="True": 
+        if Parameters["Mode6"]=="True": 
             Domoticz.Debugging(2)
             Domoticz.Debug("Debugging mode activated")
 
@@ -169,15 +194,15 @@ class BasePlugin:
         # Create devices if necessary
         for EQ3device in cube.devices:
             if cube.is_thermostat(EQ3device):
-                if Parameters["Mode2"]=="True": self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Valve")
+                self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Valve")
                 if not self.RoomHasThermostat[EQ3device.room_id]:
                     self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Thermostat")
-                    if Parameters["Mode1"]=="True": self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Temperature")
-                    if Parameters["Mode3"]=="True": self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Mode")
+                    self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Temperature")
+                    self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Mode")
             elif cube.is_wallthermostat(EQ3device):
                 self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Thermostat")
-                if Parameters["Mode1"]=="True": self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Temperature")
-                if Parameters["Mode3"]=="True": self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Mode")
+                self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Temperature")
+                self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Mode")
             elif cube.is_windowshutter(EQ3device):
                 self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Contact")
  
@@ -190,6 +215,7 @@ class BasePlugin:
                     cube.set_target_temperature(EQ3device, Level)
                     Devices[Unit].Update(nValue=0, sValue=str(Level))
                     Devices[Unit].Refresh()
+
         if Devices[Unit].Type == 244 and Devices[Unit].SubType == 62:
             if Level == 00:
                 mode = 0
@@ -210,6 +236,7 @@ class BasePlugin:
                     cube.set_mode(EQ3device, mode)
                     Devices[Unit].Update(nValue=0, sValue=str(Level))
                     Devices[Unit].Refresh()
+
 
     def onHeartbeat(self):
         #Cancel the rest of this function if this heartbeat needs to be skipped
@@ -248,6 +275,7 @@ class BasePlugin:
                 for DomDevice in Devices:
                     self.UpdateDevice(DomDevice, EQ3device, "Contact")
 
+
 global _plugin
 _plugin = BasePlugin()
 
@@ -263,17 +291,3 @@ def onHeartbeat():
     global _plugin
     _plugin.onHeartbeat()
 
-# Generic helper functions
-def DumpConfigToLog():
-    for x in Parameters:
-        if Parameters[x] != "":
-            Domoticz.Debug( "'" + x + "':'" + str(Parameters[x]) + "'")
-    Domoticz.Debug("Device count: " + str(len(Devices)))
-    for x in Devices:
-        Domoticz.Debug("Device:           " + str(x) + " - " + str(Devices[x]))
-        Domoticz.Debug("Device ID:       '" + str(Devices[x].ID) + "'")
-        Domoticz.Debug("Device Name:     '" + Devices[x].Name + "'")
-        Domoticz.Debug("Device nValue:    " + str(Devices[x].nValue))
-        Domoticz.Debug("Device sValue:   '" + Devices[x].sValue + "'")
-        Domoticz.Debug("Device LastLevel: " + str(Devices[x].LastLevel))
-    return
