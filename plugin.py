@@ -149,6 +149,7 @@ class BasePlugin:
         elif typename == "Temperature":
             devicetype = 80
             svalue = str(EQ3device.actual_temperature)
+            if svalue == "0": return
         elif typename == "Mode":
             devicetype = 244
             svalue = str(EQ3device.mode * 10)    
@@ -162,7 +163,7 @@ class BasePlugin:
 
         # Update device if it matches and if it has changed
         if Devices[DOMdevice].Type == devicetype and Devices[DOMdevice].DeviceID == EQ3device.rf_address:
-            if Devices[DOMdevice].sValue != svalue and svalue !=0:
+            if Devices[DOMdevice].sValue != svalue:
                 Domoticz.Log("Updating " + Devices[DOMdevice].Name)
                 Devices[DOMdevice].Update(nValue=nvalue, sValue=svalue, BatteryLevel=(255-EQ3device.battery*255))
 
