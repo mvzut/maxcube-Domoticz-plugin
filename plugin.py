@@ -82,12 +82,6 @@ class BasePlugin:
 
 
     def CheckDevice(self, name, deviceid, typename):
-        #Check if device is wanted
-        DeviceWanted = True
-        if typename == "Valve" and Parameters["Mode2"] == "False" or \
-           typename == "Temperature" and Parameters["Mode1"] == "False" or \
-           typename == "Mode" and Parameters["Mode3"] == "False":
-            DeviceWanted = False
         # Initialization of variables for device creation
         switchtype = 0
         image = 0
@@ -114,7 +108,14 @@ class BasePlugin:
             subtype = 73
             switchtype = 2
 
-        # Check if device with given DeviceID and Type is already present
+        # Check if device is wanted
+        DeviceWanted = True
+        if Parameters["Mode2"] == "False" and typename == "Valve" or \
+           Parameters["Mode1"] == "False" and typename == "Temperature" or \
+           Parameters["Mode3"] == "False" and typename == "Mode":
+            DeviceWanted = False
+
+        # Check if device with given deviceid and devicetype is already present
         DeviceFound = False
         for Device in Devices:
             if Devices[Device].DeviceID == deviceid and Devices[Device].Type == devicetype:
@@ -127,14 +128,14 @@ class BasePlugin:
 
         # If device not found but wanted, create it
         if not DeviceFound and DeviceWanted:
-            Check = len(Devices)
+            old_device_count = len(Devices)
             Domoticz.Device(Name=name + " - " + typename, Unit=len(Devices)+1, DeviceID=deviceid, Type=devicetype, Subtype=subtype, Switchtype=switchtype, Options=options, Image = image, Used=1).Create()
-            if len(Devices) == Check:
-                # Device not created!
-                Domoticz.Error("Device '" + Parameters["Name"] + " - " + name + " - " + typename + "' could not be created. Is 'Accept new Hardware Devices' enabled under Settings?")
-            else:
+            if len(Devices) != old_device_count:
                 # Device created
                 Domoticz.Log("Created device '" + Parameters["Name"] + " - " + name + " - " + typename + "'")
+            else:
+                # Device not created!
+                Domoticz.Error("Device '" + Parameters["Name"] + " - " + name + " - " + typename + "' could not be created. Is 'Accept new Hardware Devices' enabled under Settings?")
 
 
     def UpdateDevice(self, DOMdevice, EQ3device, typename):
@@ -179,8 +180,12 @@ class BasePlugin:
 
         # Read Cube for intialization of devices
         Domoticz.Debug("Reading e-Q3 MAX! devices from Cube...")
-        cube = MaxCube(MaxCubeConnection(Parameters["Address"], int(Parameters["Port"])))
-
+        try:
+            cube = MaxCube(MaxCubeConnection(Parameters["Address"], int(Parameters["Port"])))
+        except:
+            Domoticz.Error("Error connecting to Cube")
+            return
+        
         # Check which rooms have a wall mounterd thermostat
         max_room = 0
         for room in cube.rooms:
@@ -249,7 +254,11 @@ class BasePlugin:
 
         # Read data from Cube
         Domoticz.Debug("Reading e-Q3 MAX! devices from Cube...")
-        cube = MaxCube(MaxCubeConnection(Parameters["Address"], int(Parameters["Port"])))
+        try:
+            cube = MaxCube(MaxCubeConnection(Parameters["Address"], int(Parameters["Port"])))
+        except:
+            Domoticz.Error("Error connecting to Cube")
+            return
 
         # Update devices in Domoticz
         for EQ3device in cube.devices:
