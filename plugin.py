@@ -3,7 +3,7 @@
 # Author: mvzut
 #
 """
-<plugin key="eq3max" name="eQ-3 MAX!" author="mvzut" version="0.5.2">
+<plugin key="eq3max" name="eQ-3 MAX!" author="mvzut" version="0.6.0">
     <description>
         <h2>eQ-3 MAX! Cube plugin</h2><br/>
         <h3>Features</h3>
@@ -12,7 +12,8 @@
             <li>If a room has a wall thermostat, this will act as setpoint and temperature sensor in that room.
             Otherwise, thermostats and temperature sensors will be created for every radiator valve.
             Note that radiator valves only report temperature when the valves are moving!</li>
-            <li>Thermostats and door/window switches are always created. Temperature sensors, valve positions and thermostat mode switches are optional.</li>
+            <li>An optional "heat demand" switch is turned on when at least one of the valves is open (more than 25%)</li>
+            <li>Thermostats, temperature sensors and door/window switches are always created. Valve positions and thermostat mode switches are optional.</li>
         </ul>
         <h3>Configuration</h3>
         <ul style="list-style-type:square">
@@ -21,43 +22,43 @@
             <li>Select which  device types you want the plugin to create.</li>
             <li>Choose a polling time. The default is 5 minutes, shorter periods can sometimes cause problems, the eQ-3 MAX! system doesn't seem to like too much traffic per hour.</li>
             <li>Select if obsolete devices should be deleted (i.e. if you later decide you don't want specific device types).</li>
-            <li>Choose the debug mode, when debugging is on it will be more verbose in the log.</li>
+            <li>Choose the debug mode, when debugging is on the plugin will be more verbose in the log.</li>
         </ul>
     </description>
     <params>
         <param field="Address" label="Cube address" width="150px" required="true" default="192.168.0.1"/>
         <param field="Port" label="Cube port" width="150px" required="true" default="62910"/>
-        <param field="Mode1" label="Temperature sensors" width="150px" required="true">
+        <param field="Mode1" label="Valve positions" width="150px" required="true">
             <options>
                 <option label="Do not create" value="False"/>
-                <option label="Create &amp; update" value="True" default="true"/>
+                <option label="Create" value="True" default="true"/>
             </options>
         </param>
-        <param field="Mode2" label="Valve positions" width="150px" required="true">
-            <options>
-                <option label="Do not create" value="False"/>
-                <option label="Create &amp; update" value="True" default="true"/>
-            </options>
-        </param>
-        <param field="Mode3" label="Thermostat modes" width="150px" required="true">
+        <param field="Mode2" label="Thermostat modes" width="150px" required="true">
             <options>
                 <option label="Do not create" value="False" default="true"/>
-                <option label="Create &amp; update" value="True"/>
+                <option label="Create" value="True"/>
             </options>
         </param>
-        <param field="Mode4" label="Update every" width="150px" required="true">
+        <param field="Mode3" label="Heat demand switch" width="150px" required="true">
+            <options>
+                <option label="Do not create" value="False" default="true"/>
+                <option label="Create" value="True"/>
+            </options>
+        </param>
+        <param field="Mode4" label="Remove unwanted devices" width="75px" required="true">
+            <options>
+                <option label="Yes" value="True" default="true"/>
+                <option label="No" value="False"/>
+            </options>
+        </param>
+        <param field="Mode5" label="Update every" width="150px" required="true">
             <options>
                 <option label="1 minute" value=60/>
                 <option label="2 minutes" value=120/>
                 <option label="5 minutes (default)" value=300 default="true"/>
                 <option label="10 minutes" value=600/>
                 <option label="30 minutes" value=1800/>
-            </options>
-        </param>
-        <param field="Mode5" label="Remove obsolete devices" width="75px" required="true">
-            <options>
-                <option label="Yes" value="True" default="true"/>
-                <option label="No" value="False"/>
             </options>
         </param>
         <param field="Mode6" label="Debug mode" width="75px" required="true">
@@ -110,9 +111,8 @@ class BasePlugin:
 
         # Check if device is wanted
         DeviceWanted = True
-        if Parameters["Mode2"] == "False" and typename == "Valve" or \
-           Parameters["Mode1"] == "False" and typename == "Temperature" or \
-           Parameters["Mode3"] == "False" and typename == "Mode":
+        if Parameters["Mode1"] == "False" and typename == "Valve" or \
+           Parameters["Mode2"] == "False" and typename == "Mode":
             DeviceWanted = False
 
         # Check if device with given deviceid and devicetype is already present
@@ -121,7 +121,7 @@ class BasePlugin:
             if Devices[Device].DeviceID == deviceid and Devices[Device].Type == devicetype:
                 DeviceFound = True
                 # Delete found device if not wanted anymore and "Delete obsolete devices" is turned on
-                if not DeviceWanted and Parameters["Mode5"] == "True":
+                if not DeviceWanted and Parameters["Mode4"] == "True":
                     Domoticz.Log("Deleting device " + Devices[Device].Name)
                     Devices[Device].Delete()
                     break
@@ -143,6 +143,7 @@ class BasePlugin:
         if typename == "Valve":
             devicetype = 243
             svalue = str(EQ3device.valve_position)
+            if int(svalue) > self.min_valve_pos: self.HeatDemand += 1
         elif typename == "Thermostat":
             devicetype = 242
             svalue = str(EQ3device.target_temperature)
@@ -163,13 +164,17 @@ class BasePlugin:
 
         # Update device if it matches and if it has changed
         if Devices[DOMdevice].Type == devicetype and Devices[DOMdevice].DeviceID == EQ3device.rf_address:
-            Domoticz.Log("Updating " + Devices[DOMdevice].Name)
-            Devices[DOMdevice].Update(nValue=nvalue, sValue=svalue, BatteryLevel=(255-EQ3device.battery*255))
+            if Devices[DOMdevice].sValue != svalue:
+                Domoticz.Log("Updating " + Devices[DOMdevice].Name)
+                Devices[DOMdevice].Update(nValue=nvalue, sValue=svalue, BatteryLevel=(255-EQ3device.battery*255))
 
 
     def onStart(self):
+        # Parameters
+        self.min_valve_pos = 25
+
         # Set heartbeat
-        self.skipbeats=int(Parameters["Mode4"])/30
+        self.skipbeats=int(Parameters["Mode5"])/30
         self.beats=self.skipbeats
         Domoticz.Heartbeat(30)
 
@@ -197,7 +202,7 @@ class BasePlugin:
                 self.RoomHasThermostat[EQ3device.room_id] = True
                 Domoticz.Debug("Room " + str(EQ3device.room_id) + " (" + cube.room_by_id(EQ3device.room_id).name + ") has a thermostat")
 
-        # Create devices if necessary
+        # Create or delete devices if necessary
         for EQ3device in cube.devices:
             if cube.is_thermostat(EQ3device):
                 self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Valve")
@@ -211,10 +216,22 @@ class BasePlugin:
                 self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Mode")
             elif cube.is_windowshutter(EQ3device):
                 self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Contact")
+
+        # Create or delete heat demand switch if necessary
+        if Parameters["Mode3"] == "True" and 255 not in Devices:
+            Domoticz.Device(Name="Heat demand", Unit=255, TypeName="Switch", Image=9, Used=1).Create()
+            if 255 not in Devices:
+                Domoticz.Error("Heat demand switch could not be created. Is 'Accept new Hardware Devices' enabled under Settings?")
+            else:
+                Domoticz.Log("Created heat demand switch") 
+        elif Parameters["Mode3"] == "False" and Parameters["Mode4"] == "True" and 255 in Devices:
+            Devices[255].Delete()
+            Domoticz.Log("Deleted boiler switch")
+
  
     def onCommand(self, Unit, Command, Level, Hue):
         if Devices[Unit].Type == 242:
-            Domoticz.Debug("Setpoint changed for " + Devices[Unit].Name + ". New setpoint: " + str(Level))
+            Domoticz.Log("Setpoint changed for " + Devices[Unit].Name + ". New setpoint: " + str(Level))
             cube = MaxCube(MaxCubeConnection(Parameters["Address"], int(Parameters["Port"])))
             for EQ3device in cube.devices:
                 if Devices[Unit].DeviceID == EQ3device.rf_address:
@@ -252,6 +269,8 @@ class BasePlugin:
             return
         self.beats=1
 
+        self.HeatDemand = 0
+
         # Read data from Cube
         Domoticz.Debug("Reading e-Q3 MAX! devices from Cube...")
         try:
@@ -284,6 +303,15 @@ class BasePlugin:
                 # Look up & update Domoticz device for contact switches
                 for DomDevice in Devices:
                     self.UpdateDevice(DomDevice, EQ3device, "Contact")
+
+        # Update heat demand switch if necessary
+        Domoticz.Debug(str(self.HeatDemand) + " valves require heat")
+        if self.HeatDemand > 0 and Parameters["Mode3"] == "True" and Devices[255].sValue == "Off":
+            Devices[255].Update(nValue=1, sValue="On")
+            Domoticz.Log("Heat demand switch turned on")
+        elif self.HeatDemand == 0 and Parameters["Mode3"] == "True" and Devices[255].sValue == "On":
+            Devices[255].Update(nValue=0, sValue="Off")
+            Domoticz.Log("Heat demand switch turned off")
 
 
 global _plugin
