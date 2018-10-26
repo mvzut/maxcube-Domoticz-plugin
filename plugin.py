@@ -143,7 +143,7 @@ class BasePlugin:
         if typename == "Valve":
             devicetype = 243
             svalue = str(EQ3device.valve_position)
-            if int(svalue) > self.min_valve_pos: self.HeatDemand += 1
+            if EQ3device.valve_position > self.min_valve_pos: self.HeatDemand += 1
         elif typename == "Thermostat":
             devicetype = 242
             svalue = str(EQ3device.target_temperature)
