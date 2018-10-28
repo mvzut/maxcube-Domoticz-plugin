@@ -3,7 +3,7 @@
 # Author: mvzut
 #
 """
-<plugin key="eq3max" name="eQ-3 MAX!" author="mvzut" version="0.6.0">
+<plugin key="eq3max" name="eQ-3 MAX!" author="mvzut" version="0.6.1">
     <description>
         <h2>eQ-3 MAX! Cube plugin</h2><br/>
         <h3>Features</h3>
@@ -143,7 +143,6 @@ class BasePlugin:
         if typename == "Valve":
             devicetype = 243
             svalue = str(EQ3device.valve_position)
-            if EQ3device.valve_position > self.min_valve_pos: self.HeatDemand += 1
         elif typename == "Thermostat":
             devicetype = 242
             svalue = str(EQ3device.target_temperature)
@@ -223,7 +222,8 @@ class BasePlugin:
             if 255 not in Devices:
                 Domoticz.Error("Heat demand switch could not be created. Is 'Accept new Hardware Devices' enabled under Settings?")
             else:
-                Domoticz.Log("Created heat demand switch") 
+                Domoticz.Log("Created device '" + Parameters["Name"] + " - Heat demand'") 
+                Devices[255].Update(nValue=0, sValue="Off")
         elif Parameters["Mode3"] == "False" and Parameters["Mode4"] == "True" and 255 in Devices:
             Devices[255].Delete()
             Domoticz.Log("Deleted boiler switch")
@@ -283,6 +283,8 @@ class BasePlugin:
         for EQ3device in cube.devices:
             Domoticz.Debug("Checking device '" + EQ3device.name + "' in room " + str(EQ3device.room_id))
             if cube.is_thermostat(EQ3device):
+                # Check if valve requires heat
+                if EQ3device.valve_position > self.min_valve_pos: self.HeatDemand += 1
                 # Look up & update Domoticz devices for radiator valves
                 for DomDevice in Devices:
                     self.UpdateDevice(DomDevice, EQ3device, "Valve")
