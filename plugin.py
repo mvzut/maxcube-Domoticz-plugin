@@ -128,10 +128,11 @@ class BasePlugin:
 
         # If device not found but wanted, create it
         if not DeviceFound and DeviceWanted:
-            if Devices: NewUnitNr = max(Devices) + 1
-            else: NewUnitNr = 2
+            maxID = 0
+            for device in Devices:
+                if device > maxID and device != 255: maxID = device
             old_device_count = len(Devices)
-            Domoticz.Device(Name=name + " - " + typename, Unit=NewUnitNr, DeviceID=deviceid, Type=devicetype, Subtype=subtype, Switchtype=switchtype, Options=options, Image = image, Used=1).Create()
+            Domoticz.Device(Name=name + " - " + typename, Unit=maxID+1, DeviceID=deviceid, Type=devicetype, Subtype=subtype, Switchtype=switchtype, Options=options, Image = image, Used=1).Create()
             if len(Devices) != old_device_count:
                 # Device created
                 Domoticz.Log("Created device '" + Parameters["Name"] + " - " + name + " - " + typename + "'")
@@ -223,15 +224,15 @@ class BasePlugin:
                 self.CheckDevice(EQ3device.name, EQ3device.rf_address, "Contact")
 
         # Create or delete heat demand switch if necessary
-        if Parameters["Mode3"] == "True" and 1 not in Devices:
-            Domoticz.Device(Name="Heat demand", Unit=1, TypeName="Switch", Image=9, Used=1).Create()
-            if 1 not in Devices:
+        if Parameters["Mode3"] == "True" and 255 not in Devices:
+            Domoticz.Device(Name="Heat demand", Unit=255, TypeName="Switch", Image=9, Used=1).Create()
+            if 255 not in Devices:
                 Domoticz.Error("Heat demand switch could not be created. Is 'Accept new Hardware Devices' enabled under Settings?")
             else:
                 Domoticz.Log("Created device '" + Parameters["Name"] + " - Heat demand'") 
-                Devices[1].Update(nValue=0, sValue="Off")
-        elif Parameters["Mode3"] == "False" and Parameters["Mode4"] == "True" and 1 in Devices:
-            Devices[1].Delete()
+                Devices[255].Update(nValue=0, sValue="Off")
+        elif Parameters["Mode3"] == "False" and Parameters["Mode4"] == "True" and 255 in Devices:
+            Devices[255].Delete()
             Domoticz.Log("Deleted boiler switch")
 
  
@@ -314,11 +315,11 @@ class BasePlugin:
 
         # Update heat demand switch if necessary
         Domoticz.Debug(str(self.HeatDemand) + " valves require heat")
-        if self.HeatDemand > 0 and Parameters["Mode3"] == "True" and Devices[1].sValue == "Off":
-            Devices[1].Update(nValue=1, sValue="On")
+        if self.HeatDemand > 0 and Parameters["Mode3"] == "True" and Devices[255].sValue == "Off":
+            Devices[255].Update(nValue=1, sValue="On")
             Domoticz.Log("Heat demand switch turned on")
-        elif self.HeatDemand == 0 and Parameters["Mode3"] == "True" and Devices[1].sValue == "On":
-            Devices[1].Update(nValue=0, sValue="Off")
+        elif self.HeatDemand == 0 and Parameters["Mode3"] == "True" and Devices[255].sValue == "On":
+            Devices[255].Update(nValue=0, sValue="Off")
             Domoticz.Log("Heat demand switch turned off")
 
 
