@@ -140,10 +140,13 @@ class BasePlugin:
 
     def UpdateDevice(self, DOMdevice, EQ3device, typename):
         nvalue = 0
+        battery = 255
         if typename == "Valve":
+            battery = 100-int(EQ3device.battery)*100
             devicetype = 243
             svalue = str(EQ3device.valve_position)
         elif typename == "Thermostat":
+            battery = 100-int(EQ3device.battery)*100
             devicetype = 242
             svalue = str(EQ3device.target_temperature)
         elif typename == "Temperature":
@@ -154,6 +157,7 @@ class BasePlugin:
             devicetype = 244
             svalue = str(EQ3device.mode * 10)    
         elif typename == "Contact":
+            battery = 100-int(EQ3device.battery)*100
             devicetype = 244
             if EQ3device.is_open == False:
                 svalue = "Off"
@@ -165,7 +169,7 @@ class BasePlugin:
         if Devices[DOMdevice].Type == devicetype and Devices[DOMdevice].DeviceID == EQ3device.rf_address:
             if Devices[DOMdevice].sValue != svalue:
                 Domoticz.Log("Updating " + Devices[DOMdevice].Name)
-                Devices[DOMdevice].Update(nValue=nvalue, sValue=svalue, BatteryLevel=(100-EQ3device.battery*100))
+                Devices[DOMdevice].Update(nValue=nvalue, sValue=svalue, BatteryLevel=battery)
 
 
     def onStart(self):
