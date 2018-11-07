@@ -3,7 +3,7 @@
 # Author: mvzut
 #
 """
-<plugin key="eq3max" name="eQ-3 MAX!" author="mvzut" version="0.6.1">
+<plugin key="eq3max" name="eQ-3 MAX!" author="mvzut" version="0.6.2">
     <description>
         <h2>eQ-3 MAX! Cube plugin</h2><br/>
         <h3>Features</h3>
@@ -165,7 +165,7 @@ class BasePlugin:
         if Devices[DOMdevice].Type == devicetype and Devices[DOMdevice].DeviceID == EQ3device.rf_address:
             if Devices[DOMdevice].sValue != svalue:
                 Domoticz.Log("Updating " + Devices[DOMdevice].Name)
-                Devices[DOMdevice].Update(nValue=nvalue, sValue=svalue, BatteryLevel=(255-EQ3device.battery*255))
+                Devices[DOMdevice].Update(nValue=nvalue, sValue=svalue, BatteryLevel=(100-EQ3device.battery*100))
 
 
     def onStart(self):
