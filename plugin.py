@@ -314,11 +314,11 @@ class BasePlugin:
 
         # Update heat demand switch if necessary
         Domoticz.Debug(str(self.HeatDemand) + " valves require heat")
-        if self.HeatDemand > 0 and Parameters["Mode3"] == "True" and Devices[255].sValue == "Off":
-            Devices[255].Update(nValue=1, sValue="On")
+        if self.HeatDemand > 0 and Parameters["Mode3"] == "True" and Devices[1].sValue == "Off":
+            Devices[1].Update(nValue=1, sValue="On")
             Domoticz.Log("Heat demand switch turned on")
-        elif self.HeatDemand == 0 and Parameters["Mode3"] == "True" and Devices[255].sValue == "On":
-            Devices[255].Update(nValue=0, sValue="Off")
+        elif self.HeatDemand == 0 and Parameters["Mode3"] == "True" and Devices[1].sValue == "On":
+            Devices[1].Update(nValue=0, sValue="Off")
             Domoticz.Log("Heat demand switch turned off")
 
 
