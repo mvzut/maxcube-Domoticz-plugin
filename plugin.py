@@ -128,11 +128,15 @@ class BasePlugin:
 
         # If device not found but wanted, create it
         if not DeviceFound and DeviceWanted:
-            maxID = 0
-            for device in Devices:
-                if device > maxID and device != 255: maxID = device
+            # Check first available unit ID
+            availableID = 1
+            if Devices:
+                for device in Devices:
+                    if device > availableID: break
+                    else: availableID += 1
             old_device_count = len(Devices)
-            Domoticz.Device(Name=name + " - " + typename, Unit=maxID+1, DeviceID=deviceid, Type=devicetype, Subtype=subtype, Switchtype=switchtype, Options=options, Image = image, Used=1).Create()
+            # Create device
+            Domoticz.Device(Name=name + " - " + typename, Unit=availableID, DeviceID=deviceid, Type=devicetype, Subtype=subtype, Switchtype=switchtype, Options=options, Image = image, Used=1).Create()
             if len(Devices) != old_device_count:
                 # Device created
                 Domoticz.Log("Created device '" + Parameters["Name"] + " - " + name + " - " + typename + "'")
