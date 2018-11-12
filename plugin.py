@@ -18,8 +18,8 @@
         <h3>Configuration</h3>
         <ul style="list-style-type:square">
             <li>Fill in the IP address of your eQ-3 MAX! Cube</li>
-            <li>Fill in the port number of your Cube. The default is 62910, ther is no need to change this in most cases.</li>
-            <li>Select which  device types you want the plugin to create.</li>
+            <li>Fill in the port number of your Cube. The default is 62910, there is no need to change this in most cases.</li>
+            <li>Select which  device types you want the plugin to create. Note that existing devices will be deleted if you select you don't want them anymore!</li>
             <li>Specify the minimum valve percentage for which the heat demand switch should be turned on (1-100)</li>
             <li>Choose a polling time. The default is 5 minutes, shorter periods can sometimes cause problems, the eQ-3 MAX! system doesn't seem to like too much traffic per hour.</li>
             <li>Choose the debug mode, when debugging is on the plugin will be more verbose in the log.</li>
@@ -31,13 +31,13 @@
         <param field="Mode1" label="Valve positions" width="230px" required="true">
             <options>
                 <option label="Do not create/delete if present" value="False"/>
-                <option label="Create" value="True" default="true"/>
+                <option label="Create devices" value="True" default="true"/>
             </options>
         </param>
         <param field="Mode2" label="Thermostat modes" width="230px" required="true">
             <options>
                 <option label="Do not create/delete if present" value="False" default="true"/>
-                <option label="Create" value="True"/>
+                <option label="Create devices" value="True"/>
             </options>
         </param>
         <param field="Mode3" label="Heat demand switch" width="230px" required="true">
