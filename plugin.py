@@ -3,7 +3,7 @@
 # Author: mvzut
 #
 """
-<plugin key="eq3max" name="eQ-3 MAX!" author="mvzut" version="0.6.3">
+<plugin key="eq3max" name="eQ-3 MAX!" author="mvzut" version="0.6.4">
     <description>
         <h2>eQ-3 MAX! Cube plugin</h2><br/>
         <h3>Features</h3>
@@ -20,39 +20,34 @@
             <li>Fill in the IP address of your eQ-3 MAX! Cube</li>
             <li>Fill in the port number of your Cube. The default is 62910, ther is no need to change this in most cases.</li>
             <li>Select which  device types you want the plugin to create.</li>
+            <li>Specify the minimum valve percentage for which the heat demand switch should be turned on (1-100)</li>
             <li>Choose a polling time. The default is 5 minutes, shorter periods can sometimes cause problems, the eQ-3 MAX! system doesn't seem to like too much traffic per hour.</li>
-            <li>Select if obsolete devices should be deleted (i.e. if you later decide you don't want specific device types).</li>
             <li>Choose the debug mode, when debugging is on the plugin will be more verbose in the log.</li>
         </ul>
     </description>
     <params>
-        <param field="Address" label="Cube address" width="150px" required="true" default="192.168.0.1"/>
-        <param field="Port" label="Cube port" width="150px" required="true" default="62910"/>
-        <param field="Mode1" label="Valve positions" width="150px" required="true">
+        <param field="Address" label="Cube address" width="110px" required="true" default="192.168.0.1"/>
+        <param field="Port" label="Cube port" width="50px" required="true" default="62910"/>
+        <param field="Mode1" label="Valve positions" width="230px" required="true">
             <options>
-                <option label="Do not create" value="False"/>
+                <option label="Do not create/delete if present" value="False"/>
                 <option label="Create" value="True" default="true"/>
             </options>
         </param>
-        <param field="Mode2" label="Thermostat modes" width="150px" required="true">
+        <param field="Mode2" label="Thermostat modes" width="230px" required="true">
             <options>
-                <option label="Do not create" value="False" default="true"/>
+                <option label="Do not create/delete if present" value="False" default="true"/>
                 <option label="Create" value="True"/>
             </options>
         </param>
-        <param field="Mode3" label="Heat demand switch" width="150px" required="true">
+        <param field="Mode3" label="Heat demand switch" width="230px" required="true">
             <options>
-                <option label="Do not create" value="False" default="true"/>
+                <option label="Do not create/delete if present" value="False" default="true"/>
                 <option label="Create" value="True"/>
             </options>
         </param>
-        <param field="Mode4" label="Remove unwanted devices" width="75px" required="true">
-            <options>
-                <option label="Yes" value="True" default="true"/>
-                <option label="No" value="False"/>
-            </options>
-        </param>
-        <param field="Mode5" label="Update every" width="150px" required="true">
+        <param field="Mode4" label="Min valve pos for heat demand" width="30px" required="true" default="25"/>
+        <param field="Mode5" label="Update every" width="155px" required="true">
             <options>
                 <option label="1 minute" value=60/>
                 <option label="2 minutes" value=120/>
@@ -121,7 +116,7 @@ class BasePlugin:
             if Devices[Device].DeviceID == deviceid and Devices[Device].Type == devicetype:
                 DeviceFound = True
                 # Delete found device if not wanted anymore and "Delete obsolete devices" is turned on
-                if not DeviceWanted and Parameters["Mode4"] == "True":
+                if not DeviceWanted:
                     Domoticz.Log("Deleted device " + Devices[Device].Name)
                     Devices[Device].Delete()
                     break
@@ -145,9 +140,11 @@ class BasePlugin:
                 Domoticz.Error("Device '" + Parameters["Name"] + " - " + name + " - " + typename + "' could not be created. Is 'Accept new Hardware Devices' enabled under Settings?")
 
 
-    def UpdateDevice(self, DOMdevice, EQ3device, typename):
+    def UpdateDevice(self, EQ3device, typename):
+        # Default device values
         nvalue = 0
         battery = 255
+        # Set device-specific values
         if typename == "Valve":
             battery = 100-int(EQ3device.battery)*100
             devicetype = 243
@@ -172,17 +169,16 @@ class BasePlugin:
                 svalue = "On"
                 nvalue = 1
 
-        # Update device if it matches and if it has changed
-        if Devices[DOMdevice].Type == devicetype and Devices[DOMdevice].DeviceID == EQ3device.rf_address:
-            if Devices[DOMdevice].sValue != svalue:
-                Domoticz.Log("Updating " + Devices[DOMdevice].Name)
-                Devices[DOMdevice].Update(nValue=nvalue, sValue=svalue, BatteryLevel=battery)
+        # Find & update device if it matches and if it has changed
+        for DOMdevice in Devices:
+            if Devices[DOMdevice].Type == devicetype and Devices[DOMdevice].DeviceID == EQ3device.rf_address: # Found!
+                if Devices[DOMdevice].sValue != svalue:
+                    Domoticz.Log(typename + " (" + Devices[DOMdevice].Name + ")")
+                    Devices[DOMdevice].Update(nValue=nvalue, sValue=svalue, BatteryLevel=battery)
+                break
 
 
     def onStart(self):
-        # Parameters
-        self.min_valve_pos = 25
-
         # Set heartbeat
         self.skipbeats=int(Parameters["Mode5"])/30
         self.beats=self.skipbeats
@@ -198,7 +194,7 @@ class BasePlugin:
         try:
             cube = MaxCube(MaxCubeConnection(Parameters["Address"], int(Parameters["Port"])))
         except:
-            Domoticz.Error("Error connecting to Cube")
+            Domoticz.Error("Error connecting to Cube. Other running MAX! programs may block the communication!")
             return
         
         # Check which rooms have a wall mounterd thermostat
@@ -235,9 +231,9 @@ class BasePlugin:
             else:
                 Domoticz.Log("Created device '" + Parameters["Name"] + " - Heat demand'") 
                 Devices[255].Update(nValue=0, sValue="Off")
-        elif Parameters["Mode3"] == "False" and Parameters["Mode4"] == "True" and 255 in Devices:
+        elif Parameters["Mode3"] == "False" and 255 in Devices:
             Devices[255].Delete()
-            Domoticz.Log("Deleted boiler switch")
+            Domoticz.Log("Deleted heat demand switch")
 
  
     def onCommand(self, Unit, Command, Level, Hue):
@@ -295,27 +291,23 @@ class BasePlugin:
             Domoticz.Debug("Checking device '" + EQ3device.name + "' in room " + str(EQ3device.room_id))
             if cube.is_thermostat(EQ3device):
                 # Check if valve requires heat
-                if EQ3device.valve_position > self.min_valve_pos: self.HeatDemand += 1
-                # Look up & update Domoticz devices for radiator valves
-                for DomDevice in Devices:
-                    self.UpdateDevice(DomDevice, EQ3device, "Valve")
+                if EQ3device.valve_position > int(Parameters["Mode4"]): self.HeatDemand += 1
+                # Update Domoticz devices for radiator valves
+                self.UpdateDevice(EQ3device, "Valve")
                 if not self.RoomHasThermostat[EQ3device.room_id]:
-                    for DomDevice in Devices:
-                        self.UpdateDevice(DomDevice, EQ3device, "Thermostat")
-                        self.UpdateDevice(DomDevice, EQ3device, "Temperature")
-                        self.UpdateDevice(DomDevice, EQ3device, "Mode")
+                    self.UpdateDevice(EQ3device, "Thermostat")
+                    self.UpdateDevice(EQ3device, "Temperature")
+                    self.UpdateDevice(EQ3device, "Mode")
 
             elif cube.is_wallthermostat(EQ3device):
-                # Look up & update Domoticz devices for wall thermostats
-                for DomDevice in Devices:
-                    self.UpdateDevice(DomDevice, EQ3device, "Thermostat")
-                    self.UpdateDevice(DomDevice, EQ3device, "Temperature")
-                    self.UpdateDevice(DomDevice, EQ3device, "Mode")
+                # Update Domoticz devices for wall thermostats
+                self.UpdateDevice(EQ3device, "Thermostat")
+                self.UpdateDevice(EQ3device, "Temperature")
+                self.UpdateDevice(EQ3device, "Mode")
 
             elif cube.is_windowshutter(EQ3device):
                 # Look up & update Domoticz device for contact switches
-                for DomDevice in Devices:
-                    self.UpdateDevice(DomDevice, EQ3device, "Contact")
+                self.UpdateDevice(EQ3device, "Contact")
 
         # Update heat demand switch if necessary
         Domoticz.Debug(str(self.HeatDemand) + " valves require heat")
