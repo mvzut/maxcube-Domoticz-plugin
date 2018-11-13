@@ -3,28 +3,7 @@
 # Author: mvzut
 #
 """
-<plugin key="eq3max" name="eQ-3 MAX!" author="mvzut" version="0.6.4">
-    <description>
-        <h2>eQ-3 MAX! Cube plugin</h2><br/>
-        <h3>Features</h3>
-        <ul style="list-style-type:square">
-            <li>Automatically creates devices for all your wall mounted thermostats, radiator valves and door/window sensors.</li>
-            <li>If a room has a wall thermostat, this will act as setpoint and temperature sensor in that room.
-            Otherwise, thermostats and temperature sensors will be created for every radiator valve.
-            Note that radiator valves only report temperature when the valves are moving!</li>
-            <li>An optional "heat demand" switch is turned on when at least one of the valves is open (more than 25%)</li>
-            <li>Thermostats, temperature sensors and door/window switches are always created. Valve positions and thermostat mode switches are optional.</li>
-        </ul>
-        <h3>Configuration</h3>
-        <ul style="list-style-type:square">
-            <li>Fill in the IP address of your eQ-3 MAX! Cube</li>
-            <li>Fill in the port number of your Cube. The default is 62910, there is no need to change this in most cases.</li>
-            <li>Select which  device types you want the plugin to create. Note that existing devices will be deleted if you select you don't want them anymore!</li>
-            <li>Specify the minimum valve percentage for which the heat demand switch should be turned on (1-100)</li>
-            <li>Choose a polling time. The default is 5 minutes, shorter periods can sometimes cause problems, the eQ-3 MAX! system doesn't seem to like too much traffic per hour.</li>
-            <li>Choose the debug mode, when debugging is on the plugin will be more verbose in the log.</li>
-        </ul>
-    </description>
+<plugin key="eq3max" name="eQ-3 MAX!" author="mvzut" version="0.6.4" wikilink="https://github.com/mvzut/maxcube-Domoticz-plugin" externallink="https://www.domoticz.com/forum/viewtopic.php?f=34&amp;t=25081">
     <params>
         <param field="Address" label="Cube address" width="110px" required="true" default="192.168.0.1"/>
         <param field="Port" label="Cube port" width="50px" required="true" default="62910"/>
