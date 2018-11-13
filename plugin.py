@@ -1,7 +1,3 @@
-# First attempt to create eQ-33 MAX! plugin
-#
-# Author: mvzut
-#
 """
 <plugin key="eq3max" name="eQ-3 MAX!" author="mvzut" version="0.6.4" wikilink="https://github.com/mvzut/maxcube-Domoticz-plugin" externallink="https://www.domoticz.com/forum/viewtopic.php?f=34&amp;t=25081">
     <params>
@@ -217,13 +213,14 @@ class BasePlugin:
  
     def onCommand(self, Unit, Command, Level, Hue):
         if Devices[Unit].Type == 242:
-            Domoticz.Log("Setpoint changed for " + Devices[Unit].Name + ". New setpoint: " + str(Level))
             cube = MaxCube(MaxCubeConnection(Parameters["Address"], int(Parameters["Port"])))
             for EQ3device in cube.devices:
                 if Devices[Unit].DeviceID == EQ3device.rf_address:
-                    cube.set_target_temperature(EQ3device, Level)
-                    Devices[Unit].Update(nValue=0, sValue=str(Level))
-                    Devices[Unit].Refresh()
+                    if Devices[Unit].sValue != str(Level):
+                        Domoticz.Log("Setpoint changed for " + Devices[Unit].Name + ". New setpoint: " + str(Level))
+                        cube.set_target_temperature(EQ3device, Level)
+                        Devices[Unit].Update(nValue=0, sValue=str(Level))
+                        Devices[Unit].Refresh()
 
         if Devices[Unit].Type == 244 and Devices[Unit].SubType == 62:
             if Level == 00:
@@ -262,7 +259,7 @@ class BasePlugin:
         try:
             cube = MaxCube(MaxCubeConnection(Parameters["Address"], int(Parameters["Port"])))
         except:
-            Domoticz.Error("Error connecting to Cube")
+            Domoticz.Error("Error connecting to Cube. Other running MAX! programs may block the communication!")
             return
 
         # Update devices in Domoticz
