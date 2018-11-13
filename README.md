@@ -6,7 +6,7 @@ Integrates the ELV/e-Q3 MAX! system into Domoticz (provided a MAX! Cube LAN gate
 ## Features
 The following features are currently impemented:
 * Automatically creates devices for all your wall mounted thermostats, radiator valves and door/window sensors.
-* If a room has a wall thermostat, this will act as setpoint and temperature sensor in that room. Otherwise, thermostats and temperature sensors will be created for every radiator valve. Note that radiator valves only seem to report temperature when one of its other parameters (valve position, setpoint, mode) is changed!
+* If a room has a wall thermostat, this will act as setpoint and temperature sensor in that room. Otherwise, thermostats and temperature sensors will be created for every radiator valve. Note that radiator valves only seem to report temperature when one of their other parameters (valve position, setpoint, mode) are changed!
 * An optional "heat demand" switch is turned on when at least one of the valves is open (percentage can be configured). This switch can be used in your own scripts to control your boiler.
 * Thermostats, temperature sensors and door/window switches are always created. Valve positions and thermostat mode switches are optional. Note that, even if you choose to not create the valve position devices, the heat demand switch will still function!
 
@@ -31,7 +31,7 @@ After installing or updating the plugin, always restart Domoticz. You can find t
 
 ## Configuration
 
-In the configuration screen of the plugin (under Settings > Hardware), the following options need to be configured:
+In the configuration screen of the plugin (under Settings > Hardware), the following settings need to be configured:
 
 * Fill in the IP address of your eQ-3 MAX! Cube
 * Fill in the port number of your Cube. The default is 62910, there is no need to change this in most cases.
@@ -43,4 +43,5 @@ In the configuration screen of the plugin (under Settings > Hardware), the follo
 
 You can find more info and discussions in this Domoticz forum topic:
 https://www.domoticz.com/forum/viewtopic.php?f=34&t=25081
+I would prefer it if bugs or problems are reported there, since I don't look at the reported issues on Github as often.
 
