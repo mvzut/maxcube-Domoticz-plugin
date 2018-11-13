@@ -30,7 +30,8 @@ After installing or updating the plugin, always restart Domoticz. You can find t
 In the configuration screen of the plugin (under Settings > Hardware), the following options need to be configured:
 
 * Fill in the IP address of your eQ-3 MAX! Cube
-* Fill in the port number of your Cube. The default is 62910, there is no need to change this in most cases. Select which  device types you want the plugin to create. Note that existing devices *will be deleted* if you select you don't want them anymore!
+* Fill in the port number of your Cube. The default is 62910, there is no need to change this in most cases.
+* Select which  device types you want the plugin to create. Note that existing devices *will be deleted* if you select you don't want them anymore!
 * Specify the minimum valve percentage for which the heat demand switch should be turned on (1-100)
 * Choose a polling time. The default is 5 minutes, shorter periods can sometimes cause problems, the eQ-3 MAX! system doesn't seem to like too much traffic per hour.
 * Choose the debug mode, when debugging is on the plugin will be more verbose in the log.
