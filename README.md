@@ -43,5 +43,6 @@ In the configuration screen of the plugin (under Settings > Hardware), the follo
 
 You can find more info and discussions in this Domoticz forum topic:
 https://www.domoticz.com/forum/viewtopic.php?f=34&t=25081
+
 I would prefer it if bugs or problems are reported there, since I don't look at the reported issues on Github as often.
 
