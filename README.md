@@ -10,6 +10,21 @@ Leaning heavily on the work of hackercowboy: https://github.com/hackercowboy/pyt
 * An optional "heat demand" switch is turned on when at least one of the valves is open (percentage can be configured)
 * Thermostats, temperature sensors and door/window switches are always created. Valve positions and thermostat mode switches are optional.
 
+## Installation
+One of the easiest ways to install the plugin is by entering the following commands in a terminal to your machine running Domoticz (at least if this machine is a Raspberry Pi or something similar):
+
+`cd ~/domoticz/plugins`
+
+`git clone https://github.com/mvzut/maxcube-Domoticz-plugin MaxCube`
+
+For updating from an existing version, type the following inside the folder where the plugin is installed:
+
+`git reset --hard`
+
+`git pull`
+
+After installing or updating the plugin, always restart Domoticz. You can find the plugin under Settings > Hardware. Activate the plugin by selecting it from the "Type" drop-down menu, fill in the parameters (explanation see below) and click "Add" (only for first-time installation).
+
 ## Configuration
 
 * Fill in the IP address of your eQ-3 MAX! Cube
