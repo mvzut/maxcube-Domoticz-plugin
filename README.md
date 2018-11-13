@@ -6,8 +6,8 @@ Integrates the ELV/e-Q3 MAX! system into Domoticz (provided a MAX! Cube LAN gate
 ## Features
 The following features are currently impemented:
 * Automatically creates devices for all your wall mounted thermostats, radiator valves and door/window sensors.
-* If a room has a wall thermostat, this will act as setpoint and temperature sensor in that room. Otherwise, thermostats and temperature sensors will be created for every radiator valve. Note that radiator valves only report temperature when the valves are moving!
-* An optional "heat demand" switch is turned on when at least one of the valves is open (percentage can be configured)
+* If a room has a wall thermostat, this will act as setpoint and temperature sensor in that room. Otherwise, thermostats and temperature sensors will be created for every radiator valve. Note that radiator valves only seem to report temperature when one of its other parameters (valve position, setpoint) is changed!
+* An optional "heat demand" switch is turned on when at least one of the valves is open (percentage can be configured). This switch can be used in your own scripts to control your boiler.
 * Thermostats, temperature sensors and door/window switches are always created. Valve positions and thermostat mode switches are optional. Note that, even if you choose to not create the valve position devices, the heat demand switch will still function!
 
 ## Installation
