@@ -1,7 +1,7 @@
 # maxcube-Domoticz-plugin
 ## ELV/EQ-3 MAX! Python plugin for Domoticz
 
-Leaning heavily on the work of hackercowboy: https://github.com/hackercowboy/python-maxcube-api
+Integrates the ELV/e-Q3 MAX! system into Domoticz (provided a MAX! Cube LAN gateway module is part of the system). Leaning heavily on the work of hackercowboy: https://github.com/hackercowboy/python-maxcube-api
 
 ## Features
 The following features are currently impemented:
