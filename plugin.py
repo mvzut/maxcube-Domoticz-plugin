@@ -221,7 +221,7 @@ class BasePlugin:
                     Devices[Unit].Update(nValue=0, sValue=str(Level))
                     Devices[Unit].Refresh()
 
-        if Devices[Unit].Type == 244 and Devices[Unit].SubType == 62:
+        if Devices[Unit].Type == 244 and Devices[Unit].SubType == 62 and Devices[Unit].sValue != str(Level):
             if Level == 00:
                 mode = 0
                 mode_text = "Auto"
