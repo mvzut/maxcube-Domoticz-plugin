@@ -17,7 +17,7 @@ One of the easiest ways to install the plugin is by entering the following comma
 
 `git clone https://github.com/mvzut/maxcube-Domoticz-plugin MaxCube`
 
-For updating from an existing version, type the following inside the folder where the plugin is installed:
+For updating from an existing version, type the following inside the folder where the plugin is installed (in the above case ~/domoticz/plugins/MaxCube):
 
 `git reset --hard`
 
